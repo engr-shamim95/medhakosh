@@ -42,6 +42,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
 
+  <!-- ================= READING PROGRESS BAR ================= -->
+  <div id="reading-progress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-brand-600 via-indigo-500 to-purple-600 z-50 transition-all duration-100 w-0"></div>
+
   <!-- ================= NAVBAR ================= -->
   <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 transition-colors">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -194,6 +197,10 @@
         <button data-view="files" class="view-tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all">
           সরাসরি ফাইল হাব
         </button>
+        <button data-view="bookmarks" class="view-tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5">
+          <i data-lucide="bookmark" class="w-4 h-4"></i>
+          <span>সংরক্ষিত (<span id="bookmark-count-badge">০</span>)</span>
+        </button>
       </div>
 
       <!-- Category Filter Pills -->
@@ -249,6 +256,29 @@
           </p>
         </div>
         <span class="text-sm text-slate-500 dark:text-slate-400" id="files-count-badge"></span>
+      </div>
+
+      <!-- File Format Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6" id="format-filter-pills">
+        <button data-format="all" class="format-pill active px-3.5 py-1.5 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300">
+          সব ফরম্যাট
+        </button>
+        <button data-format="pdf" class="format-pill px-3.5 py-1.5 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex items-center gap-1">
+          <i data-lucide="file-text" class="w-3.5 h-3.5 text-rose-500"></i>
+          <span>PDF ডকুমেন্ট</span>
+        </button>
+        <button data-format="excel" class="format-pill px-3.5 py-1.5 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex items-center gap-1">
+          <i data-lucide="table" class="w-3.5 h-3.5 text-emerald-500"></i>
+          <span>Excel শিট</span>
+        </button>
+        <button data-format="zip" class="format-pill px-3.5 py-1.5 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex items-center gap-1">
+          <i data-lucide="archive" class="w-3.5 h-3.5 text-amber-500"></i>
+          <span>ZIP ফাইল</span>
+        </button>
+        <button data-format="doc" class="format-pill px-3.5 py-1.5 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 flex items-center gap-1">
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-blue-500"></i>
+          <span>Word ফাইল</span>
+        </button>
       </div>
 
       <!-- Files Grid -->
@@ -389,6 +419,15 @@
       </div>
     </div>
   </footer>
+
+  <!-- ================= FLOATING COMMUNITY PILL ================= -->
+  <div class="fixed bottom-6 left-6 z-40">
+    <a href="https://t.me/" target="_blank" class="flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/30 font-semibold text-xs sm:text-sm transition-all hover:scale-105 border border-emerald-400/30 group">
+      <i data-lucide="message-circle" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+      <span class="hidden sm:inline">ফ্রি রিসোর্স পেতে</span>
+      <span>কমিউনিটি গ্রুপ</span>
+    </a>
+  </div>
 
   <!-- Scripts -->
   <script src="data.js"></script>

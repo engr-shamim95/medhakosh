@@ -1,14 +1,39 @@
 /**
  * মেধাকোষ (MedhaKosh) - Interactive Application Logic
+ * সকল আধুনিক ফিচার সমৃদ্ধ (Reading Progress, Bookmarks, Social Share, Format Filter, Related Posts, Comments)
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // State
+  // ================= STATE =================
   let currentCategory = "সব ক্যাটাগরি";
   let searchQuery = "";
-  let currentView = "all"; // 'all', 'blogs', 'files'
+  let currentView = "all"; // 'all', 'blogs', 'files', 'bookmarks'
+  let currentFileFormat = "all"; // 'all', 'pdf', 'excel', 'zip', 'doc'
 
-  // DOM Elements
+  // Bookmarks State from LocalStorage
+  let bookmarks = [];
+  try {
+    bookmarks = JSON.parse(localStorage.getItem("medhakosh_bookmarks") || "[]");
+  } catch (e) {
+    bookmarks = [];
+  }
+
+  // Load data (preferring custom posts saved via Admin Dashboard if available)
+  let currentBlogData = [...BLOG_DATA];
+  let currentCategories = [...CATEGORIES];
+  const savedAdminData = localStorage.getItem("medhakosh_custom_posts");
+  if (savedAdminData) {
+    try {
+      currentBlogData = JSON.parse(savedAdminData);
+      const uniqueCats = new Set(["সব ক্যাটাগরি", ...currentBlogData.map(p => p.category)]);
+      currentCategories = Array.from(uniqueCats);
+    } catch(e) {
+      currentBlogData = [...BLOG_DATA];
+      currentCategories = [...CATEGORIES];
+    }
+  }
+
+  // ================= DOM ELEMENTS =================
   const blogsGrid = document.getElementById("blogs-grid");
   const filesGrid = document.getElementById("files-grid");
   const categoryPillsContainer = document.getElementById("category-pills");
@@ -28,9 +53,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalFilesStat = document.getElementById("total-files-stat");
   const blogsCountBadge = document.getElementById("blogs-count-badge");
   const filesCountBadge = document.getElementById("files-count-badge");
+  const bookmarkCountBadge = document.getElementById("bookmark-count-badge");
 
   const noBlogsMsg = document.getElementById("no-blogs-msg");
   const noFilesMsg = document.getElementById("no-files-msg");
+
+  const formatFilterPills = document.querySelectorAll("#format-filter-pills .format-pill");
 
   // Modals
   const articleModal = document.getElementById("article-modal");
@@ -50,29 +78,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("theme-toggle");
   const themeIcon = document.getElementById("theme-icon");
 
-  // Load data (preferring custom posts saved via Admin Dashboard if available)
-  let currentBlogData = [...BLOG_DATA];
-  let currentCategories = [...CATEGORIES];
-  const savedAdminData = localStorage.getItem("medhakosh_custom_posts");
-  if (savedAdminData) {
-    try {
-      currentBlogData = JSON.parse(savedAdminData);
-      const uniqueCats = new Set(["সব ক্যাটাগরি", ...currentBlogData.map(p => p.category)]);
-      currentCategories = Array.from(uniqueCats);
-    } catch(e) {
-      currentBlogData = [...BLOG_DATA];
-      currentCategories = [...CATEGORIES];
-    }
-  }
+  // ================= 1. READING PROGRESS BAR =================
+  window.addEventListener("scroll", () => {
+    const progressBar = document.getElementById("reading-progress");
+    if (!progressBar) return;
+    const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+    progressBar.style.width = Math.min(scrolled, 100) + "%";
+  });
 
-  // Initialize Stats
+  // ================= 2. STATS & BOOKMARKS COUNT =================
   function updateStats() {
     if (totalArticlesStat) totalArticlesStat.textContent = currentBlogData.length;
     const totalFiles = currentBlogData.filter(post => post.downloadFile).length;
     if (totalFilesStat) totalFilesStat.textContent = totalFiles;
+    updateBookmarkBadge();
   }
 
-  // Theme initialization
+  function updateBookmarkBadge() {
+    if (bookmarkCountBadge) {
+      bookmarkCountBadge.textContent = bookmarks.length;
+    }
+  }
+
+  // ================= 3. THEME TOGGLE =================
   function initTheme() {
     const isDark = localStorage.getItem("theme") === "dark" || 
       (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -102,7 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // File type styling helper
   function getFileIconAndBadge(type) {
-    switch(type.toLowerCase()) {
+    const t = (type || 'file').toLowerCase();
+    switch(t) {
       case 'pdf':
         return { icon: 'file-text', color: 'text-rose-500 bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900', label: 'PDF ডকুমেন্ট' };
       case 'zip':
@@ -119,7 +150,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Render Categories
+  // ================= 4. BOOKMARK LOGIC =================
+  window.toggleBookmark = function(id, event) {
+    if (event) event.stopPropagation();
+    const idx = bookmarks.indexOf(id);
+    if (idx === -1) {
+      bookmarks.push(id);
+      showToast("পোস্টটি সংরক্ষণে রাখা হয়েছে! ❤️");
+    } else {
+      bookmarks.splice(idx, 1);
+      showToast("পোস্টটি সংরক্ষণ থেকে সরানো হয়েছে।");
+    }
+    localStorage.setItem("medhakosh_bookmarks", JSON.stringify(bookmarks));
+    updateBookmarkBadge();
+    applyFilters();
+  };
+
+  // ================= 5. RENDER CATEGORIES =================
   function renderCategories() {
     categoryPillsContainer.innerHTML = "";
     currentCategories.forEach(cat => {
@@ -137,10 +184,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Filter Data
+  // ================= 6. FILTER DATA =================
   function getFilteredData() {
     return currentBlogData.filter(item => {
+      // Category filter
       const matchesCategory = currentCategory === "সব ক্যাটাগরি" || item.category === currentCategory;
+      
+      // Bookmark view filter
+      if (currentView === "bookmarks" && !bookmarks.includes(item.id)) {
+        return false;
+      }
+
+      // Search query
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch = !q || 
         item.title.toLowerCase().includes(q) || 
@@ -152,13 +207,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Render Blog Cards
+  // ================= 7. RENDER BLOG CARDS =================
   function renderBlogs(data) {
     blogsGrid.innerHTML = "";
-    blogsCountBadge.textContent = `${data.length}টি পোস্ট পাওয়া গেছে`;
+    const label = currentView === "bookmarks" ? "সংরক্ষিত পোস্ট" : "টি পোস্ট পাওয়া গেছে";
+    blogsCountBadge.textContent = `${data.length} ${label}`;
 
     if (data.length === 0) {
       noBlogsMsg.classList.remove("hidden");
+      if (currentView === "bookmarks") {
+        noBlogsMsg.querySelector("p").textContent = "আপনার কোনো পোস্ট সংরক্ষিত নেই। পোস্টে থাকা বুকমার্ক আইকনে ক্লিক করে সংরক্ষণ করুন।";
+      } else {
+        noBlogsMsg.querySelector("p").textContent = "কোনো ব্লগ পোস্ট পাওয়া যায়নি";
+      }
     } else {
       noBlogsMsg.classList.add("hidden");
     }
@@ -166,9 +227,10 @@ document.addEventListener("DOMContentLoaded", () => {
     data.forEach(post => {
       const file = post.downloadFile;
       const fileBadge = file ? getFileIconAndBadge(file.type) : null;
+      const isBookmarked = bookmarks.includes(post.id);
 
       const card = document.createElement("article");
-      card.className = "blog-card flex flex-col bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/90 dark:border-slate-800/90 shadow-sm hover:shadow-xl transition-all group";
+      card.className = "blog-card flex flex-col bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/90 dark:border-slate-800/90 shadow-sm hover:shadow-xl transition-all group relative";
       
       card.innerHTML = `
         <div class="relative h-48 overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -183,14 +245,26 @@ document.addEventListener("DOMContentLoaded", () => {
               ${post.category}
             </span>
           </div>
-          ${file ? `
-            <div class="absolute top-3 right-3">
+
+          <div class="absolute top-3 right-3 flex items-center gap-1.5">
+            <!-- Bookmark Button -->
+            <button 
+              onclick="toggleBookmark(${post.id}, event)" 
+              class="p-2 rounded-full backdrop-blur-md shadow-sm transition-all ${
+                isBookmarked ? 'bg-rose-500 text-white' : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:text-rose-500'
+              }" 
+              title="${isBookmarked ? 'সংরক্ষণ বাতিল' : 'সংরক্ষণ করুন'}"
+            >
+              <i data-lucide="${isBookmarked ? 'bookmark-check' : 'bookmark'}" class="w-4 h-4"></i>
+            </button>
+
+            ${file ? `
               <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-600 text-white shadow-sm">
                 <i data-lucide="download" class="w-3 h-3"></i>
-                ফাইল সংযুক্ত
+                ফাইল
               </span>
-            </div>
-          ` : ''}
+            ` : ''}
+          </div>
         </div>
 
         <div class="p-6 flex flex-col flex-grow">
@@ -206,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </span>
           </div>
 
-          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-2 mb-2.5">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-2 mb-2.5 cursor-pointer" onclick="openArticleModal(${post.id})">
             ${post.title}
           </h3>
 
@@ -258,10 +332,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Render Standalone Download Cards
+  // ================= 8. RENDER DOWNLOAD CARDS WITH FORMAT FILTER =================
   function renderFiles(data) {
     filesGrid.innerHTML = "";
-    const filesWithPost = data.filter(item => item.downloadFile);
+    
+    // Filter files by file type if selected
+    let filesWithPost = data.filter(item => item.downloadFile);
+    if (currentFileFormat !== "all") {
+      filesWithPost = filesWithPost.filter(item => {
+        const t = (item.downloadFile.type || "").toLowerCase();
+        if (currentFileFormat === "excel") return t === "excel" || t === "xlsx";
+        if (currentFileFormat === "doc") return t === "doc" || t === "docx";
+        return t === currentFileFormat;
+      });
+    }
+
     filesCountBadge.textContent = `${filesWithPost.length}টি ফাইল প্রস্তুত`;
 
     if (filesWithPost.length === 0) {
@@ -325,7 +410,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Apply filters and views
+  // Format filter pills event handling
+  if (formatFilterPills) {
+    formatFilterPills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        formatFilterPills.forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        currentFileFormat = pill.getAttribute("data-format");
+        renderFiles(getFilteredData());
+        lucide.createIcons();
+      });
+    });
+  }
+
+  // ================= 9. APPLY FILTERS & VIEWS =================
   function applyFilters() {
     const filtered = getFilteredData();
 
@@ -333,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentView === "all") {
       blogsSection.classList.remove("hidden");
       downloadsSection.classList.remove("hidden");
-    } else if (currentView === "blogs") {
+    } else if (currentView === "blogs" || currentView === "bookmarks") {
       blogsSection.classList.remove("hidden");
       downloadsSection.classList.add("hidden");
     } else if (currentView === "files") {
@@ -345,11 +443,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderFiles(filtered);
 
     // Filter banner
-    if (searchQuery || currentCategory !== "সব ক্যাটাগরি") {
+    if (searchQuery || currentCategory !== "সব ক্যাটাগরি" || currentView === "bookmarks") {
       filterStatusBanner.classList.remove("hidden");
       const terms = [];
       if (searchQuery) terms.push(`সার্চ: "${searchQuery}"`);
       if (currentCategory !== "সব ক্যাটাগরি") terms.push(`ক্যাটাগরি: "${currentCategory}"`);
+      if (currentView === "bookmarks") terms.push(`শুধুমাত্র সংরক্ষিত তালিকা`);
       filterStatusText.textContent = `ফিল্টার সক্রিয় (${terms.join(" • ")})`;
     } else {
       filterStatusBanner.classList.add("hidden");
@@ -388,24 +487,77 @@ document.addEventListener("DOMContentLoaded", () => {
   resetFilterBtn.addEventListener("click", () => {
     searchQuery = "";
     currentCategory = "সব ক্যাটাগরি";
+    currentView = "all";
+    viewTabs.forEach(t => t.classList.remove("active"));
+    document.querySelector('.view-tab-btn[data-view="all"]').classList.add("active");
     heroSearchInput.value = "";
     renderCategories();
     applyFilters();
   });
 
-  // Global functions attached to window for HTML onclick handlers
+  // ================= 10. SOCIAL SHARE HANDLER =================
+  window.sharePost = function(platform, title, id) {
+    const shareUrl = window.location.href.split('#')[0] + `#post-${id}`;
+    let targetUrl = "";
+
+    switch(platform) {
+      case 'whatsapp':
+        targetUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title + "\n\nফ্রি পড়ুন ও ডাউনলোড করুন মেধাকোষ থেকে: " + shareUrl)}`;
+        break;
+      case 'facebook':
+        targetUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'telegram':
+        targetUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(shareUrl);
+        showToast("লিংক সফলভাবে কপি হয়েছে!");
+        return;
+    }
+
+    if (targetUrl) {
+      window.open(targetUrl, "_blank", "width=600,height=450");
+    }
+  };
+
+  // ================= 11. ARTICLE MODAL (WITH RELATED POSTS & COMMENTS) =================
   window.openArticleModal = function(id) {
     const post = currentBlogData.find(p => p.id === id);
     if (!post) return;
 
     const file = post.downloadFile;
     const fileBadge = file ? getFileIconAndBadge(file.type) : null;
+    const isBookmarked = bookmarks.includes(post.id);
+
+    // Related posts: up to 3 from same category, or fallback to others
+    const relatedPosts = currentBlogData
+      .filter(p => p.id !== post.id && (p.category === post.category || true))
+      .slice(0, 3);
+
+    // Load comments from LocalStorage
+    const commentKey = `medhakosh_comments_${post.id}`;
+    let comments = [];
+    try {
+      comments = JSON.parse(localStorage.getItem(commentKey) || "[]");
+    } catch(e) {
+      comments = [];
+    }
 
     modalArticleContent.innerHTML = `
-      <div class="mb-4">
+      <div class="flex items-center justify-between mb-4 pr-10">
         <span class="px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-300">
           ${post.category}
         </span>
+        <button 
+          onclick="toggleBookmark(${post.id}, event)" 
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            isBookmarked ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+          }"
+        >
+          <i data-lucide="${isBookmarked ? 'bookmark-check' : 'bookmark'}" class="w-4 h-4 text-rose-500"></i>
+          <span>${isBookmarked ? 'সংরক্ষিত' : 'সংরক্ষণ করুন'}</span>
+        </button>
       </div>
 
       <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-3 leading-snug">
@@ -421,6 +573,32 @@ document.addEventListener("DOMContentLoaded", () => {
           <i data-lucide="clock" class="w-4 h-4"></i>
           ${post.readTime}
         </span>
+      </div>
+
+      <!-- Social Share Bar (1-Click) -->
+      <div class="mb-6 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="share-2" class="w-4 h-4 text-brand-600"></i>
+          <span>বন্ধুদের সাথে শেয়ার করুন:</span>
+        </span>
+        <div class="flex items-center gap-2">
+          <button onclick="sharePost('whatsapp', '${post.title}', ${post.id})" class="px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm" title="WhatsApp-এ শেয়ার">
+            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+            <span>WhatsApp</span>
+          </button>
+          <button onclick="sharePost('facebook', '${post.title}', ${post.id})" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm" title="Facebook-এ শেয়ার">
+            <i data-lucide="facebook" class="w-3.5 h-3.5"></i>
+            <span>Facebook</span>
+          </button>
+          <button onclick="sharePost('telegram', '${post.title}', ${post.id})" class="px-2.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm" title="Telegram-এ শেয়ার">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Telegram</span>
+          </button>
+          <button onclick="sharePost('copy', '${post.title}', ${post.id})" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1" title="লিংক কপি">
+            <i data-lucide="link" class="w-3.5 h-3.5"></i>
+            <span>কপি</span>
+          </button>
+        </div>
       </div>
 
       <div class="rounded-2xl overflow-hidden mb-6 max-h-80 w-full bg-slate-100 dark:bg-slate-800">
@@ -450,17 +628,72 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       ` : ''}
 
+      <!-- Main Content -->
       <div class="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-6">
         ${post.content}
       </div>
 
+      <!-- Related Posts Section -->
+      ${relatedPosts.length > 0 ? `
+        <div class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-2 h-5 bg-brand-600 rounded-full"></div>
+            <h3 class="text-lg font-bold">সম্পর্কিত অন্যান্য পোস্টসমূহ</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            ${relatedPosts.map(rp => `
+              <div onclick="openArticleModal(${rp.id})" class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition-all cursor-pointer group">
+                <div class="h-24 rounded-xl overflow-hidden mb-2 bg-slate-200">
+                  <img src="${rp.coverImage}" alt="${rp.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                </div>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-brand-600 transition-colors">${rp.title}</h4>
+                <p class="text-[11px] text-slate-400 mt-1">${rp.readTime}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Comments & Reader Feedback Section -->
+      <div class="mt-10 pt-8 border-t border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="messages-square" class="w-5 h-5 text-indigo-600"></i>
+          <h3 class="text-lg font-bold">মন্তব্য ও আলোচনা (${comments.length})</h3>
+        </div>
+
+        <!-- Comment Input Form -->
+        <form id="comment-form-${post.id}" onsubmit="submitComment(${post.id}, event)" class="mb-6 space-y-3">
+          <input type="text" id="commenter-name-${post.id}" required placeholder="আপনার নাম লিখুন..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <textarea id="commenter-text-${post.id}" required rows="2" placeholder="এই আর্টিকেল বা ফাইল সম্পর্কে আপনার মতামত বা প্রশ্ন লিখুন..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+          <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all">
+            মন্তব্য পোস্ট করুন
+          </button>
+        </form>
+
+        <!-- Comments List -->
+        <div class="space-y-3" id="comments-list-${post.id}">
+          ${comments.length === 0 ? `
+            <p class="text-xs text-slate-400 italic">এখনো কোনো মন্তব্য নেই। প্রথম মন্তব্যটি আপনিই করুন!</p>
+          ` : comments.map(c => `
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs">
+              <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200 mb-1">
+                <span>${c.name}</span>
+                <span class="text-[10px] text-slate-400 font-normal">${c.date}</span>
+              </div>
+              <p class="text-slate-600 dark:text-slate-400 leading-relaxed">${c.text}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Modal Bottom Actions -->
       <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <button onclick="closeArticleModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold">
           বন্ধ করুন
         </button>
-        <button onclick="copyCurrentLink()" class="flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">
-          <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
-          <span>শেয়ার লিংক কপি</span>
+        <button onclick="sharePost('whatsapp', '${post.title}', ${post.id})" class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>WhatsApp-এ শেয়ার</span>
         </button>
       </div>
     `;
@@ -468,6 +701,33 @@ document.addEventListener("DOMContentLoaded", () => {
     articleModal.classList.remove("hidden");
     document.body.style.overflow = "hidden";
     lucide.createIcons();
+  };
+
+  // Submit reader comment helper
+  window.submitComment = function(postId, event) {
+    event.preventDefault();
+    const nameInput = document.getElementById(`commenter-name-${postId}`);
+    const textInput = document.getElementById(`commenter-text-${postId}`);
+    if (!nameInput || !textInput) return;
+
+    const newComment = {
+      name: nameInput.value.trim(),
+      text: textInput.value.trim(),
+      date: new Date().toLocaleDateString('bn-BD')
+    };
+
+    const commentKey = `medhakosh_comments_${postId}`;
+    let comments = [];
+    try {
+      comments = JSON.parse(localStorage.getItem(commentKey) || "[]");
+    } catch(e) {
+      comments = [];
+    }
+
+    comments.unshift(newComment);
+    localStorage.setItem(commentKey, JSON.stringify(comments));
+    showToast("আপনার মন্তব্য সফলভাবে প্রকাশ হয়েছে!");
+    openArticleModal(postId); // Re-render modal with new comment
   };
 
   window.closeArticleModal = function() {
@@ -533,11 +793,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
       if (toast.parentElement) toast.parentElement.removeChild(toast);
     }, 3000);
-  };
-
-  window.copyCurrentLink = function() {
-    navigator.clipboard.writeText(window.location.href);
-    showToast("লিংক সফলভাবে কপি হয়েছে!");
   };
 
   // ESC key closes modals

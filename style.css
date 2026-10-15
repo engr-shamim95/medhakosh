@@ -1,6 +1,5 @@
 /* Custom styling enhancements for MedhaKosh */
 
-/* Smooth transitions */
 * {
   box-sizing: border-box;
 }
@@ -29,14 +28,15 @@
 }
 
 /* Category Pill Styling */
-.category-pill {
+.category-pill, .format-pill {
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
-.category-pill.active {
+.category-pill.active, .format-pill.active {
   background-color: #4f46e5;
   color: #ffffff;
+  border-color: #4f46e5;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
