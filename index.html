@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="bn" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>মেধাকোষ - ব্লগ ও ফ্রি ডাউনলোড হাব</title>
+  <meta name="description" content="বাংলা ব্লগ, শিক্ষণীয় টিউটোরিয়াল এবং প্রয়োজনীয় সব ফাইল, PDF, ইবুক ও সফটওয়্যার একদম বিনামূল্যে ডাউনলোডের প্ল্যাটফর্ম।">
+  
+  <!-- Google Fonts: Hind Siliguri (Bengali) & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Hind Siliguri"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-2 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+          <i data-lucide="layers" class="w-5 h-5"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-600 to-indigo-500 dark:from-brand-400 dark:to-indigo-300 bg-clip-text text-transparent">
+            মেধাকোষ
+          </span>
+          <span class="text-[11px] text-slate-500 dark:text-slate-400 -mt-1 font-medium">ব্লগ ও ফ্রি রিসোর্স</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <a href="#home" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">হোম</a>
+        <a href="#blogs-section" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">ব্লগ পোস্ট</a>
+        <a href="#downloads-section" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">ফাইল হাব</a>
+        <a href="#about-section" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">আমাদের সম্পর্কে</a>
+      </nav>
+
+      <!-- Right Action Items -->
+      <div class="flex items-center gap-3">
+        <!-- Search Trigger Button -->
+        <button id="search-modal-btn" aria-label="অনুসন্ধান" class="p-2 text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Dark/Light Mode Toggle -->
+        <button id="theme-toggle" aria-label="থিম পরিবর্তন" class="p-2 text-slate-600 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <i id="theme-icon" data-lucide="moon" class="w-5 h-5"></i>
+        </button>
+
+        <!-- CTA Button -->
+        <a href="#downloads-section" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm shadow-brand-600/30 transition-all hover:shadow-md hover:shadow-brand-600/40">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>ফাইল খুঁজুন</span>
+        </a>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+      <a href="#home" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-slate-100 dark:hover:bg-slate-800">হোম</a>
+      <a href="#blogs-section" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-slate-100 dark:hover:bg-slate-800">ব্লগ পোস্ট</a>
+      <a href="#downloads-section" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-slate-100 dark:hover:bg-slate-800">ফাইল হাব</a>
+      <a href="#about-section" class="block px-3 py-2 rounded-lg text-base font-medium hover:bg-slate-100 dark:hover:bg-slate-800">আমাদের সম্পর্কে</a>
+    </div>
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section id="home" class="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 border-b border-slate-200/80 dark:border-slate-800/80">
+    <!-- Background Glow Accents -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-brand-500/10 dark:bg-brand-500/15 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+    
+    <div class="max-w-5xl mx-auto px-4 text-center">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 text-xs sm:text-sm font-semibold mb-6 animate-pulse">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <span>১০০% ফ্রি জ্ঞান ও ডিজিটাল রিসোর্স হাব</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight sm:leading-snug">
+        জানুন, শিখুন এবং প্রয়োজনীয় ফাইল সংগ্রহ করুন <span class="bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">একদম বিনামূল্যে</span>
+      </h1>
+
+      <p class="mt-4 sm:mt-6 text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        উচ্চমানের শিক্ষণীয় আর্টিকেল, গাইডলাইন এবং প্রতিটি বিষয়ের উপর হ্যান্ডনোট, ইবুক ও টুলস সরাসরি ডাউনলোড করুন কোনো প্রকার সাবস্ক্রিপশন ছাড়াই।
+      </p>
+
+      <!-- Search Input in Hero -->
+      <div class="mt-8 sm:mt-10 max-w-xl mx-auto">
+        <div class="relative flex items-center">
+          <i data-lucide="search" class="absolute left-4 w-5 h-5 text-slate-400 pointer-events-none"></i>
+          <input 
+            type="text" 
+            id="hero-search-input" 
+            placeholder="যেকোনো ব্লগ, PDF বই বা ফাইল খুঁজুন..." 
+            class="w-full pl-12 pr-28 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm sm:text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
+          >
+          <button id="hero-search-btn" class="absolute right-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition-all">
+            খুঁজুন
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Badges -->
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+          <span>সরাসরি ডাউনলোড</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+          <span>ভাইরাস ও স্প্যাম মুক্ত</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
+          <span>হাই স্পিড ক্লাউড লিংক</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATS SECTION ================= -->
+  <section class="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 py-8">
+    <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-brand-600 dark:text-brand-400" id="total-articles-stat">০</p>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">মোট ব্লগ পোস্ট</p>
+      </div>
+      <div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400" id="total-files-stat">০</p>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">ফ্রি ডাউনলোড ফাইল</p>
+      </div>
+      <div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">০ ৳</p>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">সম্পূর্ণ বিনামূল্যে</p>
+      </div>
+      <div>
+        <p class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400">২৪/৭</p>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">সরাসরি অ্যাক্সেস</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MAIN CONTENT SECTION ================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow w-full">
+    
+    <!-- Category & Tab Filter Controls -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 border-b border-slate-200 dark:border-slate-800">
+      
+      <!-- View Modes: All vs Blogs vs Files -->
+      <div class="inline-flex p-1 bg-slate-200/80 dark:bg-slate-900 rounded-2xl w-fit" id="view-tabs">
+        <button data-view="all" class="view-tab-btn active px-4 py-2 text-sm font-semibold rounded-xl transition-all">
+          সবকিছু
+        </button>
+        <button data-view="blogs" class="view-tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all">
+          শুধুমাত্র ব্লগ
+        </button>
+        <button data-view="files" class="view-tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all">
+          সরাসরি ফাইল হাব
+        </button>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none" id="category-pills">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+
+    </div>
+
+    <!-- Active Search / Filter Status (if any) -->
+    <div id="filter-status-banner" class="hidden mt-4 p-3 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-900/60 rounded-xl flex items-center justify-between">
+      <div class="flex items-center gap-2 text-sm text-brand-700 dark:text-brand-300">
+        <i data-lucide="info" class="w-4 h-4"></i>
+        <span id="filter-status-text">খোঁজা হচ্ছে...</span>
+      </div>
+      <button id="reset-filter-btn" class="text-xs font-semibold text-brand-600 hover:text-brand-800 dark:text-brand-400 hover:underline">
+        সব ফিল্টার মুছুন
+      </button>
+    </div>
+
+    <!-- ================= BLOG ARTICLES SECTION ================= -->
+    <section id="blogs-section" class="mt-10">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2">
+          <div class="w-2.5 h-6 bg-brand-600 rounded-full"></div>
+          <h2 class="text-2xl font-bold tracking-tight">সর্বশেষ ব্লগ ও আর্টিকেলসমূহ</h2>
+        </div>
+        <span class="text-sm text-slate-500 dark:text-slate-400" id="blogs-count-badge"></span>
+      </div>
+
+      <!-- Blogs Grid -->
+      <div id="blogs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <!-- Empty state if no blogs found -->
+      <div id="no-blogs-msg" class="hidden py-12 text-center text-slate-500">
+        <i data-lucide="search-x" class="w-12 h-12 mx-auto text-slate-400 mb-3"></i>
+        <p class="text-lg font-medium">কোনো ব্লগ পোস্ট পাওয়া যায়নি</p>
+      </div>
+    </section>
+
+    <!-- ================= QUICK DOWNLOADS HUB ================= -->
+    <section id="downloads-section" class="mt-16 pt-12 border-t border-slate-200 dark:border-slate-800">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+        <div>
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-6 bg-indigo-600 rounded-full"></div>
+            <h2 class="text-2xl font-bold tracking-tight">ডাউনলোড কেন্দ্র (ফ্রি রিসোর্স)</h2>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            যে কোনো ফাইল এক ক্লিকে সরাসরি ডাউনলোড করুন
+          </p>
+        </div>
+        <span class="text-sm text-slate-500 dark:text-slate-400" id="files-count-badge"></span>
+      </div>
+
+      <!-- Files Grid -->
+      <div id="files-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected dynamically by JS -->
+      </div>
+
+      <!-- Empty state if no files found -->
+      <div id="no-files-msg" class="hidden py-12 text-center text-slate-500">
+        <i data-lucide="folder-x" class="w-12 h-12 mx-auto text-slate-400 mb-3"></i>
+        <p class="text-lg font-medium">কোনো ডাউনলোড ফাইল পাওয়া যায়নি</p>
+      </div>
+    </section>
+
+    <!-- ================= ABOUT & REQUEST SECTION ================= -->
+    <section id="about-section" class="mt-20 p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white relative overflow-hidden shadow-2xl">
+      <div class="absolute -right-10 -bottom-10 w-72 h-72 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 max-w-3xl">
+        <span class="text-brand-300 font-semibold text-sm uppercase tracking-wider">আমাদের মিশন</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mt-2 leading-snug">
+          সবার জন্য উন্মুক্ত জ্ঞান ও ডিজিটাল রিসোর্স প্ল্যাটফর্ম
+        </h2>
+        <p class="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed">
+          এই ওয়েবসাইটটি তৈরি করা হয়েছে শিক্ষার্থী, গবেষক এবং প্রযুক্তি প্রেমীদের সুবিধার জন্য। আমাদের সব কন্টেন্ট ও ফাইল একদম বিনামূল্যে সরবরাহ করা হয়। আপনার কি কোনো নির্দিষ্ট ফাইল বা বই প্রয়োজন? আমাদের জানান, আমরা যুক্ত করার সর্বোচ্চ চেষ্টা করব।
+        </p>
+
+        <div class="mt-6 flex flex-wrap gap-4">
+          <button id="open-request-modal-btn" class="px-5 py-2.5 bg-white text-slate-900 hover:bg-slate-100 font-semibold text-sm rounded-xl transition-all shadow-md">
+            ফাইল বা বইয়ের অনুরোধ পাঠান
+          </button>
+          <a href="#home" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium text-sm rounded-xl transition-all border border-white/20">
+            উপরে যান
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL: FULL ARTICLE & DOWNLOAD PREVIEW ================= -->
+  <div id="article-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 relative">
+      
+      <!-- Close Button -->
+      <button id="close-article-modal" class="absolute top-5 right-5 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <div id="modal-article-content">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: REQUEST A FILE ================= -->
+  <div id="request-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex items-center justify-center">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 p-6 relative">
+      <button id="close-request-modal" class="absolute top-4 right-4 p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="text-center">
+        <div class="w-12 h-12 bg-brand-100 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="send" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold">ফাইল বা টপিকের অনুরোধ</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">আপনার প্রয়োজনীয় বই, নোটস বা সফটওয়্যার সম্পর্কে লিখুন</p>
+      </div>
+
+      <form id="file-request-form" class="mt-5 space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">আপনার নাম বা ইমেইল</label>
+          <input type="text" required placeholder="নাম বা ইমেইল লিখুন" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">প্রয়োজনীয় ফাইলের নাম বা বিষয়</label>
+          <input type="text" required placeholder="যেমন: এইচএসসি রসায়ন হ্যান্ডনোট" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">কোনো অতিরিক্ত বিবরণ (যদি থাকে)</label>
+          <textarea rows="3" placeholder="ফাইলের ধরন বা অন্যান্য বিবরণ লিখুন..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md">
+          অনুরোধ জমা দিন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-10 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+            <span class="text-lg font-bold">মেধাকোষ</span>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            বিনামূল্যে জ্ঞান ছড়িয়ে দেওয়ার এবং প্রয়োজনীয় ডিজিটাল ফাইলসমূহ সবার কাছে পৌঁছে দেওয়ার একটি উন্মুক্ত শিক্ষামূলক উদ্যোগ।
+          </p>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-3">দ্রুত লিঙ্কসমূহ</h4>
+          <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <li><a href="#home" class="hover:text-brand-600 transition-colors">হোমপেজ</a></li>
+            <li><a href="#blogs-section" class="hover:text-brand-600 transition-colors">ব্লগসমূহ</a></li>
+            <li><a href="#downloads-section" class="hover:text-brand-600 transition-colors">ফাইল ডাউনলোড হাব</a></li>
+            <li><a href="#about-section" class="hover:text-brand-600 transition-colors">আমাদের লক্ষ্য</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-3">হোস্টিং ও ফ্রি সুবিধা</h4>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            এই ওয়েবসাইটটি ১০০% ফ্রি হোস্টিংয়ে (GitHub Pages / Vercel) চালানোর জন্য বিশেষভাবে অপ্টিমাইজড। ০ টাকা খরচে আজীবন চালু রাখা সম্ভব।
+          </p>
+          <div class="mt-4 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+            <i data-lucide="server" class="w-4 h-4"></i>
+            <span>১০০% ক্লাউড স্ট্যাটিক হোস্টিং ফ্রেন্ডলি</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <p>© 2026 মেধাকোষ (MedhaKosh) • সর্বস্বত্ব সংরক্ষিত।</p>
+        <p>ডিজাইন ও ডেভেলপমেন্ট: ফ্রি ওয়েবসাইট সল্যুশন</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
