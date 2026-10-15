@@ -27,6 +27,7 @@
               500: '#6366f1',
               600: '#4f46e5',
               700: '#4338ca',
+              800: '#3730a3',
             }
           }
         }
@@ -36,17 +37,38 @@
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    
+    .nav-item.active {
+      background-color: #4f46e5;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    .nav-item.active i {
+      color: #ffffff !important;
+    }
+    .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans antialiased flex flex-col">
 
-  <!-- ================= LOGIN SCREEN (IF LOCKED) ================= -->
+  <!-- ================= 1. SECURE LOGIN SCREEN ================= -->
   <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center">
-      <div class="w-16 h-16 bg-brand-50 dark:bg-brand-950/60 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-8 shadow-2xl text-center relative overflow-hidden">
+      <!-- Glow background -->
+      <div class="absolute -top-12 -right-12 w-36 h-36 bg-brand-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="w-16 h-16 bg-brand-50 dark:bg-brand-950/60 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner border border-brand-100 dark:border-brand-900">
         <i data-lucide="shield-check" class="w-8 h-8"></i>
       </div>
-      <h2 class="text-2xl font-bold">অ্যাডমিন প্রবেশদ্বার</h2>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">মেধাকোষ ওয়েবসাইট নিয়ন্ত্রণ করার জন্য পাসওয়ার্ড দিন</p>
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">মেধাকোষ অ্যাডমিন প্যানেল</h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5">কন্টেন্ট, ডাউনলোড ফাইল ও মন্তব্য নিয়ন্ত্রণ করতে পাসওয়ার্ড দিন</p>
 
       <form id="login-form" class="mt-6 space-y-4">
         <div class="relative flex items-center">
@@ -63,367 +85,858 @@
         </div>
         <button 
           type="submit" 
-          class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-brand-600/30"
+          class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-brand-600/30 flex items-center justify-center gap-2"
         >
-          লগইন করুন
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>লগইন করুন</span>
         </button>
       </form>
+
+      <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+        <span>ডিফল্ট পাসওয়ার্ড: <code class="text-brand-600 dark:text-brand-400 font-mono">admin123</code></span>
+        <a href="index.html" class="text-brand-600 hover:underline">ওয়েবসাইটে ফিরে যান</a>
+      </div>
     </div>
   </div>
 
-  <!-- ================= MAIN ADMIN APP ================= -->
-  <div id="admin-app" class="hidden min-h-screen flex flex-col">
-    
-    <!-- Topbar -->
-    <header class="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 sm:px-8">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white">
-          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h1 class="text-lg font-bold">মেধাকোষ অ্যাডমিন প্যানেল</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400">কন্টেন্ট ও ডাউনলোড ম্যানেজার</p>
-        </div>
-      </div>
+  <!-- ================= 2. MAIN APP WITH SIDEBAR LAYOUT ================= -->
+  <div id="admin-app" class="hidden min-h-screen flex flex-row">
 
-      <div class="flex items-center gap-3">
-        <a href="index.html" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
-          <i data-lucide="external-link" class="w-4 h-4"></i>
-          <span>মূল ওয়েবসাইট দেখুন</span>
-        </a>
-        <button id="open-change-pass-btn" onclick="openPasswordModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:hover:bg-amber-900 transition-colors">
-          <i data-lucide="key" class="w-4 h-4"></i>
-          <span>পাসওয়ার্ড পরিবর্তন</span>
-        </button>
-        <button id="logout-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
-          <span>লগআউট</span>
-        </button>
-      </div>
-    </header>
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs hidden md:hidden"></div>
 
-    <!-- Content Area -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-8 py-8 w-full flex-grow space-y-8">
+    <!-- ================= LEFT SIDEBAR ================= -->
+    <aside id="admin-sidebar" class="fixed top-0 bottom-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800/90 flex flex-col justify-between transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 shadow-sm">
       
-      <!-- Stats Row -->
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center shrink-0">
-            <i data-lucide="book-open" class="w-6 h-6"></i>
+      <!-- Sidebar Header / Logo -->
+      <div>
+        <div class="h-16 flex items-center justify-between px-5 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-sm shadow-brand-500/30">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-base font-bold tracking-tight">মেধাকোষ</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-300 font-semibold ml-1">Pro</span>
+            </div>
           </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">মোট ব্লগ পোস্ট</p>
-            <h3 class="text-2xl font-bold" id="stat-total-posts">০</h3>
-          </div>
-        </div>
-
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shrink-0">
-            <i data-lucide="folder-down" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">ডাউনলোড ফাইল সংখ্যা</p>
-            <h3 class="text-2xl font-bold" id="stat-total-files">০</h3>
-          </div>
-        </div>
-
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center shrink-0">
-            <i data-lucide="tag" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">মোট ক্যাটাগরি</p>
-            <h3 class="text-2xl font-bold" id="stat-total-cats">০</h3>
-          </div>
-        </div>
-
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center shrink-0">
-            <i data-lucide="cloud-check" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">হোস্টিং স্ট্যাটাস</p>
-            <h3 class="text-base font-bold text-emerald-600">GitHub Pages লাইভ</h3>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-        <div class="flex flex-wrap items-center gap-3">
-          <button id="open-new-post-btn" class="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm shadow-brand-600/30">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            <span>নতুন ব্লগ পোস্ট লিখুন</span>
-          </button>
-          <button onclick="openPasswordModal()" class="flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm">
-            <i data-lucide="key" class="w-4 h-4"></i>
-            <span>পাসওয়ার্ড পরিবর্তন করুন</span>
-          </button>
-          <button id="open-github-sync-btn" class="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl text-sm font-semibold transition-all">
-            <i data-lucide="github" class="w-4 h-4"></i>
-            <span>GitHub সিঙ্ক ও এক্সপোর্ট</span>
+          <!-- Close button on mobile -->
+          <button id="close-mobile-sidebar-btn" class="md:hidden p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+            <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
 
-        <div class="flex items-center gap-2 text-xs text-slate-500">
-          <i data-lucide="info" class="w-4 h-4 text-brand-600"></i>
-          <span>ড্যাশবোর্ডের সব পরিবর্তন লোকাল এবং এক্সপোর্টযোগ্য</span>
+        <!-- Navigation Menu -->
+        <nav class="p-3 space-y-1 text-xs font-semibold">
+          <button onclick="switchView('overview')" id="nav-overview" class="nav-item active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex items-center gap-3">
+              <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-400"></i>
+              <span>ড্যাশবোর্ড ওভারভিউ</span>
+            </div>
+          </button>
+
+          <button onclick="switchView('posts')" id="nav-posts" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex items-center gap-3">
+              <i data-lucide="file-text" class="w-4 h-4 text-slate-400"></i>
+              <span>সমস্ত পোস্ট ও ফাইল</span>
+            </div>
+            <span id="badge-total-posts" class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300">০</span>
+          </button>
+
+          <button onclick="switchView('editor'); prepareNewPost();" id="nav-editor" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex items-center gap-3">
+              <i data-lucide="pen-tool" class="w-4 h-4 text-slate-400"></i>
+              <span>নতুন পোস্ট ও প্রিভিউ</span>
+            </div>
+            <span class="text-[10px] text-brand-600 dark:text-brand-400 font-bold">+লিখুন</span>
+          </button>
+
+          <button onclick="switchView('comments')" id="nav-comments" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex items-center gap-3">
+              <i data-lucide="messages-square" class="w-4 h-4 text-slate-400"></i>
+              <span>পাঠক মন্তব্য</span>
+            </div>
+            <span id="badge-total-comments" class="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-[10px] text-indigo-600 dark:text-indigo-300 font-bold">০</span>
+          </button>
+
+          <button onclick="switchView('requests')" id="nav-requests" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex items-center gap-3">
+              <i data-lucide="inbox" class="w-4 h-4 text-slate-400"></i>
+              <span>ফাইল রিকোয়েস্ট</span>
+            </div>
+            <span id="badge-total-requests" class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-[10px] text-amber-600 dark:text-amber-300 font-bold">০</span>
+          </button>
+
+          <div class="pt-3 pb-1 px-3">
+            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">ক্লাউড ও নিরাপত্তা</p>
+          </div>
+
+          <button onclick="switchView('sync')" id="nav-sync" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex items-center gap-3">
+              <i data-lucide="git-branch" class="w-4 h-4 text-slate-400"></i>
+              <span>GitHub সিঙ্ক ও ব্যাকআপ</span>
+            </div>
+          </button>
+
+          <button onclick="switchView('settings')" id="nav-settings" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex items-center gap-3">
+              <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+              <span>সেটিংস ও পাসওয়ার্ড</span>
+            </div>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sidebar Footer User Card -->
+      <div class="p-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <a href="index.html" target="_blank" class="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-brand-600 dark:text-slate-300 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 transition-colors">
+          <div class="flex items-center gap-2">
+            <i data-lucide="external-link" class="w-4 h-4 text-emerald-500"></i>
+            <span>লাইভ ওয়েবসাইট</span>
+          </div>
+          <span class="text-[10px] text-emerald-600 font-bold">ভিজিট</span>
+        </a>
+
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-100/70 dark:bg-slate-800/40">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+              A
+            </div>
+            <div class="leading-tight">
+              <p class="text-xs font-bold">অ্যাডমিনিস্ট্রেটর</p>
+              <p class="text-[10px] text-emerald-500 font-medium">● অনলাইন</p>
+            </div>
+          </div>
+          <button id="logout-btn" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors" title="লগআউট">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
 
-      <!-- ================= POSTS TABLE ================= -->
-      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <h3 class="text-base font-bold">সমস্ত ব্লগ পোস্ট ও রিসোর্স তালিকা</h3>
-          <span class="text-xs text-slate-500" id="table-count-label"></span>
-        </div>
+    </aside>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-            <thead class="text-xs uppercase bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th class="px-6 py-3.5">আইডি</th>
-                <th class="px-6 py-3.5">শিরোনাম ও ক্যাটাগরি</th>
-                <th class="px-6 py-3.5">তারিখ ও পাঠ</th>
-                <th class="px-6 py-3.5">সংযুক্ত ফাইল</th>
-                <th class="px-6 py-3.5 text-right">অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody id="posts-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
-              <!-- Rendered dynamically -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <!-- ================= MODAL: CREATE / EDIT POST ================= -->
-  <div id="post-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 relative">
-      <button id="close-post-modal" class="absolute top-5 right-5 p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
-        <i data-lucide="x" class="w-6 h-6"></i>
-      </button>
-
-      <h3 class="text-xl font-bold mb-1" id="post-modal-title">নতুন ব্লগ পোস্ট তৈরি করুন</h3>
-      <p class="text-xs text-slate-500 mb-6">নিচের তথ্যগুলো পূরণ করে সেভ করুন</p>
-
-      <form id="post-editor-form" class="space-y-4">
-        <input type="hidden" id="edit-post-id" value="">
-
-        <div>
-          <label class="block text-xs font-semibold mb-1">ব্লগের শিরোনাম *</label>
-          <input type="text" id="post-title" required placeholder="যেমন: নতুন এনজিও হিসাবরক্ষণ পদ্ধতি" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- ================= RIGHT CONTENT AREA ================= -->
+    <div class="flex-1 flex flex-col min-h-screen md:ml-64 w-full overflow-x-hidden">
+      
+      <!-- Topbar Header -->
+      <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800/90 h-16 flex items-center justify-between px-4 sm:px-8">
+        
+        <div class="flex items-center gap-3">
+          <!-- Mobile Hamburger Toggle -->
+          <button id="mobile-sidebar-toggle" class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          
           <div>
-            <label class="block text-xs font-semibold mb-1">ক্যাটাগরি *</label>
-            <input type="text" id="post-category" required placeholder="যেমন: ব্যবসা ও ক্ষুদ্র ঋণ" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold mb-1">পড়ার সময় (মিনিট)</label>
-            <input type="text" id="post-readtime" placeholder="৫ মিনিট পাঠ" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <h2 id="page-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">ড্যাশবোর্ড ওভারভিউ</h2>
+            <p id="page-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">আপনার ওয়েবসাইটের সম্পূর্ণ পরিসংখ্যান ও সর্বশেষ তথ্য</p>
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold mb-1">কভার ছবির লিংক (Image URL)</label>
-          <input type="url" id="post-image" placeholder="https://images.unsplash.com/photo-..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-          <p class="text-[11px] text-slate-400 mt-1">ফাঁকা রাখলে স্বয়ংক্রিয় ডিফল্ট ছবি বসবে।</p>
+        <!-- Topbar Actions -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Dark / Light Mode Toggle -->
+          <button id="admin-theme-toggle" class="p-2 text-slate-600 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="থিম পরিবর্তন">
+            <i id="admin-theme-icon" data-lucide="moon" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+          </button>
+
+          <!-- Quick GitHub Sync Button -->
+          <button onclick="switchView('sync')" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span>GitHub সিঙ্ক</span>
+          </button>
+
+          <!-- Quick Write Post Button -->
+          <button onclick="switchView('editor'); prepareNewPost();" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-sm shadow-brand-600/30 transition-all">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>নতুন পোস্ট</span>
+          </button>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold mb-1">সংক্ষিপ্ত সারসংক্ষেপ (Summary) *</label>
-          <textarea id="post-summary" rows="2" required placeholder="ব্লগের মূল বিষয়টি ২-৩ বাক্যে লিখুন..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
-        </div>
+      </header>
 
-        <div>
-          <label class="block text-xs font-semibold mb-1">ব্লগের মূল কন্টেন্ট (Full Content)</label>
-          <textarea id="post-content" rows="6" placeholder="এখানে আপনার পূর্ণাঙ্গ আর্টিকেল লিখুন (HTML প্যারাগ্রাফ বা সাধারণ টেক্সট)..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
-        </div>
-
-        <!-- Downloadable File Section -->
-        <div class="p-4 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-indigo-900 dark:text-indigo-300">ডাউনলোডযোগ্য ফাইল যুক্ত করতে চান?</span>
-            <input type="checkbox" id="has-file-check" class="w-4 h-4 text-brand-600 rounded">
-          </div>
-
-          <div id="file-fields" class="space-y-3 hidden pt-2 border-t border-indigo-100 dark:border-slate-700">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[11px] font-semibold mb-1">ফাইলের নাম</label>
-                <input type="text" id="file-name" placeholder="যেমন: নোটস.pdf" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+      <!-- Main Dynamic Content Views -->
+      <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        
+        <!-- ================= VIEW 1: OVERVIEW ================= -->
+        <section id="view-overview" class="space-y-8">
+          
+          <!-- Stat Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-500">মোট ব্লগ পোস্ট</span>
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center">
+                  <i data-lucide="book-open" class="w-4 h-4"></i>
+                </div>
               </div>
+              <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100" id="stat-posts">০</h3>
+              <p class="text-[11px] text-slate-400 mt-1">সব ক্যাটাগরি মিলিয়ে</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-500">ডাউনলোড ফাইল</span>
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center">
+                  <i data-lucide="folder-down" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100" id="stat-files">০</h3>
+              <p class="text-[11px] text-emerald-600 font-medium mt-1">PDF, Excel, ZIP ও Doc</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-500">পাঠক মন্তব্য</span>
+                <div class="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 flex items-center justify-center">
+                  <i data-lucide="messages-square" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100" id="stat-comments">০</h3>
+              <p class="text-[11px] text-slate-400 mt-1">ব্যবহারকারীদের প্রতিক্রিয়া</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-slate-500">ফাইল রিকোয়েস্ট</span>
+                <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                  <i data-lucide="inbox" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100" id="stat-requests">০</h3>
+              <p class="text-[11px] text-amber-600 font-medium mt-1">ব্যবহারকারীর অনুরোধ</p>
+            </div>
+          </div>
+
+          <!-- Quick Action Banner -->
+          <div class="p-6 rounded-3xl bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/20 uppercase tracking-wider">দ্রুত অ্যাকশন</span>
+              <h3 class="text-xl font-bold mt-2">নতুন কন্টেন্ট যুক্ত করুন বা ব্যাকআপ নিন</h3>
+              <p class="text-xs text-indigo-100 mt-1">লাইভ সাইটে সরাসরি নতুন পোস্ট পাবলিশ করতে এক ক্লিকেই এডিটরে চলে যান</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+              <button onclick="switchView('editor'); prepareNewPost();" class="px-4 py-2 bg-white text-brand-600 hover:bg-slate-100 rounded-xl text-xs font-bold shadow-md transition-all">
+                + পোস্ট লিখুন
+              </button>
+              <button onclick="switchView('sync')" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs font-bold backdrop-blur-md transition-all">
+                GitHub সিঙ্ক ও ব্যাকআপ
+              </button>
+            </div>
+          </div>
+
+          <!-- 2 Columns: Recent Posts & Recent Comments/Requests -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Left: Latest Posts -->
+            <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm flex flex-col justify-between">
               <div>
-                <label class="block text-[11px] font-semibold mb-1">ফাইলের ধরন (Type)</label>
-                <select id="file-type" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
-                  <option value="pdf">PDF ডকুমেন্ট</option>
-                  <option value="zip">ZIP আর্কাইভ</option>
-                  <option value="excel">Excel শিট</option>
-                  <option value="doc">Word ডকুমেন্ট</option>
-                </select>
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i>
+                    <h3 class="text-sm font-bold">সর্বশেষ ব্লগ পোস্টসমূহ</h3>
+                  </div>
+                  <button onclick="switchView('posts')" class="text-xs font-semibold text-brand-600 hover:underline">
+                    সবগুলো দেখুন →
+                  </button>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-slate-800 mt-2" id="overview-recent-posts">
+                  <!-- Rendered dynamically -->
+                </div>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Right: Recent Requests & Feedback -->
+            <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm flex flex-col justify-between">
               <div>
-                <label class="block text-[11px] font-semibold mb-1">ফাইলের সাইজ</label>
-                <input type="text" id="file-size" placeholder="যেমন: 3.5 MB" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
-              </div>
-              <div>
-                <label class="block text-[11px] font-semibold mb-1">Google Drive / ক্লাউড ডাউনলোড লিংক</label>
-                <input type="text" id="file-url" placeholder="https://drive.google.com/..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="inbox" class="w-4 h-4 text-amber-500"></i>
+                    <h3 class="text-sm font-bold">সাম্প্রতিক ফাইল রিকোয়েস্ট ইনবক্স</h3>
+                  </div>
+                  <button onclick="switchView('requests')" class="text-xs font-semibold text-brand-600 hover:underline">
+                    ইনবক্স দেখুন →
+                  </button>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-slate-800 mt-2" id="overview-recent-requests">
+                  <!-- Rendered dynamically -->
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="pt-4 flex items-center justify-end gap-3">
-          <button type="button" id="cancel-post-modal" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold rounded-xl">
-            বাতিল
-          </button>
-          <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md">
-            পোস্ট সেভ করুন
-          </button>
-        </div>
-      </form>
+          </div>
+
+        </section>
+
+        <!-- ================= VIEW 2: POSTS & FILES MANAGER ================= -->
+        <section id="view-posts" class="hidden space-y-6">
+          
+          <!-- Search & Filter Controls -->
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto flex-grow">
+              <div class="relative w-full sm:w-72">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input 
+                  type="text" 
+                  id="posts-search-input" 
+                  placeholder="পোস্টের নাম বা বিষয় খুঁজুন..." 
+                  class="w-full pl-9 pr-3 py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+              </div>
+
+              <select id="posts-category-filter" class="w-full sm:w-auto px-3 py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="all">সব ক্যাটাগরি</option>
+              </select>
+
+              <select id="posts-file-filter" class="w-full sm:w-auto px-3 py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="all">সব পোস্ট</option>
+                <option value="with-file">শুধুমাত্র ফাইলযুক্ত</option>
+                <option value="without-file">ফাইলবিহীন</option>
+              </select>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              <button id="bulk-delete-btn" class="hidden px-3 py-2 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:hover:bg-rose-900 transition-colors flex items-center gap-1.5">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>সিলেক্টেড ডিলিট</span>
+              </button>
+
+              <button onclick="switchView('editor'); prepareNewPost();" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-brand-600/30 transition-all">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>নতুন পোস্ট লিখুন</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800/90 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                <thead class="text-[11px] uppercase bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-bold border-b border-slate-200/80 dark:border-slate-800">
+                  <tr>
+                    <th class="px-4 py-3.5 text-center w-10">
+                      <input type="checkbox" id="select-all-posts" class="rounded text-brand-600">
+                    </th>
+                    <th class="px-4 py-3.5">আইডি</th>
+                    <th class="px-4 py-3.5">কভার</th>
+                    <th class="px-4 py-3.5">শিরোনাম ও ক্যাটাগরি</th>
+                    <th class="px-4 py-3.5">তারিখ ও পাঠ</th>
+                    <th class="px-4 py-3.5">সংযুক্ত ফাইল</th>
+                    <th class="px-4 py-3.5 text-right">অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody id="posts-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <div id="posts-empty-msg" class="hidden py-12 text-center text-slate-400">
+              <i data-lucide="file-question" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="text-sm font-semibold">কোনো পোস্ট খুঁজে পাওয়া যায়নি</p>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================= VIEW 3: EDITOR WITH LIVE PREVIEW ================= -->
+        <section id="view-editor" class="hidden space-y-6">
+          
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div>
+              <h3 class="text-lg font-bold" id="editor-heading">পোস্ট এডিটর ও লাইভ প্রিভিউ</h3>
+              <p class="text-xs text-slate-500">বামে লিখুন, ডানে রিয়েল-টাইমে পোস্টের চেহারা দেখুন</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="auto-save-status" class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500"></i>
+                অটো-সেভ সক্রিয়
+              </span>
+            </div>
+          </div>
+
+          <!-- Split Grid: Left Editor Form, Right Live Preview -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Form (7 Cols) -->
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800/90 shadow-sm space-y-4">
+              <form id="post-editor-form" class="space-y-4">
+                <input type="hidden" id="edit-post-id" value="">
+
+                <div>
+                  <label class="block text-xs font-bold mb-1">ব্লগের শিরোনাম *</label>
+                  <input type="text" id="post-title" required placeholder="যেমন: নতুন এনজিও হিসাবরক্ষণ পদ্ধতি ও গাইড" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold mb-1">ক্যাটাগরি *</label>
+                    <input type="text" id="post-category" required placeholder="যেমন: ব্যবসা ও ক্ষুদ্র ঋণ" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <div class="flex flex-wrap gap-1 mt-1.5">
+                      <button type="button" onclick="setCategory('ব্যবসা ও ক্ষুদ্র ঋণ')" class="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-brand-600">ব্যবসা ও ঋণ</button>
+                      <button type="button" onclick="setCategory('হিসাবরক্ষণ ও একাউন্টিং')" class="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-brand-600">হিসাবরক্ষণ</button>
+                      <button type="button" onclick="setCategory('প্রযুক্তি ও টিপস')" class="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-brand-600">প্রযুক্তি</button>
+                      <button type="button" onclick="setCategory('শিক্ষা ও ক্যারিয়ার')" class="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-brand-600">ক্যারিয়ার</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold mb-1">পড়ার সময়</label>
+                    <input type="text" id="post-readtime" placeholder="যেমন: ৫ মিনিট পাঠ" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold mb-1">কভার ছবির লিংক (Image URL)</label>
+                  <input type="url" id="post-image" placeholder="https://images.unsplash.com/photo-..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  <div class="flex items-center gap-1.5 mt-1.5 text-[11px] text-slate-400">
+                    <span>১-ক্লিকে ছবি সিলেক্ট করুন:</span>
+                    <button type="button" onclick="setImagePreset('accounting')" class="text-brand-600 hover:underline">হিসাবরক্ষণ</button> •
+                    <button type="button" onclick="setImagePreset('microcredit')" class="text-brand-600 hover:underline">ক্ষুদ্র ঋণ</button> •
+                    <button type="button" onclick="setImagePreset('office')" class="text-brand-600 hover:underline">অফিস</button> •
+                    <button type="button" onclick="setImagePreset('tech')" class="text-brand-600 hover:underline">প্রযুক্তি</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold mb-1">সংক্ষিপ্ত সারসংক্ষেপ (Summary) *</label>
+                  <textarea id="post-summary" rows="2" required placeholder="ব্লগের মূল বিষয়টি সংক্ষেপে ২-৩ বাক্যে লিখুন..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                </div>
+
+                <!-- Rich Text Editor Toolbar -->
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-bold">ব্লগের মূল কন্টেন্ট (Full Content)</label>
+                    <span class="text-[10px] text-slate-400">HTML বা সাধারণ প্যারাগ্রাফ সাপোর্ট করে</span>
+                  </div>
+
+                  <!-- Toolbar Buttons -->
+                  <div class="flex flex-wrap items-center gap-1 p-2 rounded-t-xl bg-slate-100 dark:bg-slate-800 border border-b-0 border-slate-200 dark:border-slate-700 text-xs">
+                    <button type="button" onclick="insertFormat('bold')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded font-bold" title="বোল্ড">B</button>
+                    <button type="button" onclick="insertFormat('italic')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded italic" title="ইটালিক">I</button>
+                    <button type="button" onclick="insertFormat('h2')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded font-bold text-indigo-600" title="হেডিং ২">H2</button>
+                    <button type="button" onclick="insertFormat('h3')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded font-bold text-indigo-600" title="হেডিং ৩">H3</button>
+                    <span class="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1"></span>
+                    <button type="button" onclick="insertFormat('ul')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded flex items-center gap-1" title="বুলেট লিস্ট">
+                      <i data-lucide="list" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button type="button" onclick="insertFormat('quote')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded flex items-center gap-1" title="কোটেশন">
+                      <i data-lucide="quote" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button type="button" onclick="insertFormat('link')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded flex items-center gap-1" title="লিংক">
+                      <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button type="button" onclick="insertFormat('image')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded flex items-center gap-1" title="ছবি">
+                      <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button type="button" onclick="insertFormat('hr')" class="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded" title="ডিভাইডার">─</button>
+                  </div>
+
+                  <textarea id="post-content" rows="7" placeholder="এখানে আপনার পূর্ণাঙ্গ আর্টিকেল লিখুন..." class="w-full px-4 py-3 rounded-b-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                </div>
+
+                <!-- Attached Download File Accordion -->
+                <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-slate-800/80 border border-indigo-100 dark:border-slate-700 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="paperclip" class="w-4 h-4 text-indigo-600"></i>
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">ডাউনলোডযোগ্য ফাইল সংযুক্তি</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="has-file-check" class="sr-only peer">
+                      <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                    </label>
+                  </div>
+
+                  <div id="file-fields" class="space-y-3 hidden pt-3 border-t border-indigo-100 dark:border-slate-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-[11px] font-bold mb-1">ফাইলের নাম</label>
+                        <input type="text" id="file-name" placeholder="যেমন: NGO_Salary_Sheet.xlsx" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                      </div>
+                      <div>
+                        <label class="block text-[11px] font-bold mb-1">ফাইলের ধরন (Type)</label>
+                        <select id="file-type" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                          <option value="pdf">PDF ডকুমেন্ট</option>
+                          <option value="excel">Excel শিট (.xlsx)</option>
+                          <option value="zip">ZIP আর্কাইভ</option>
+                          <option value="doc">Word ডকুমেন্ট</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-[11px] font-bold mb-1">ফাইলের সাইজ</label>
+                        <input type="text" id="file-size" placeholder="যেমন: 2.5 MB" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                      </div>
+                      <div>
+                        <label class="block text-[11px] font-bold mb-1">Google Drive / ক্লাউড ডাউনলোড লিংক</label>
+                        <input type="text" id="file-url" placeholder="https://drive.google.com/..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Submit and Reset Buttons -->
+                <div class="pt-4 flex items-center justify-between">
+                  <button type="button" onclick="prepareNewPost()" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+                    রিসেট / পরিষ্কার
+                  </button>
+                  <div class="flex items-center gap-2">
+                    <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-600/30 flex items-center gap-1.5 transition-all">
+                      <i data-lucide="check" class="w-4 h-4"></i>
+                      <span>পোস্ট সংরক্ষণ ও প্রকাশ করুন</span>
+                    </button>
+                  </div>
+                </div>
+
+              </form>
+            </div>
+
+            <!-- Right Live Preview Card (5 Cols) -->
+            <div class="lg:col-span-5 sticky top-24 space-y-4">
+              <div class="flex items-center justify-between px-2">
+                <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+                  <i data-lucide="eye" class="w-4 h-4 text-brand-600"></i>
+                  <span>ওয়েবসাইটে যেমন দেখাবে (Live Preview)</span>
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold">লাইভ ভিউ</span>
+              </div>
+
+              <!-- Live Card Replica -->
+              <div class="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/90 dark:border-slate-800/90 shadow-xl">
+                <div class="relative h-44 overflow-hidden bg-slate-200 dark:bg-slate-800">
+                  <img id="preview-image" src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80" alt="Preview" class="w-full h-full object-cover">
+                  <div class="absolute top-3 left-3">
+                    <span id="preview-category" class="px-3 py-1 rounded-full text-xs font-bold bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-brand-600 shadow-sm">
+                      ক্যাটাগরি
+                    </span>
+                  </div>
+                </div>
+
+                <div class="p-5 flex flex-col">
+                  <div class="flex items-center gap-2 text-xs text-slate-400 mb-2 font-medium">
+                    <span id="preview-date">আজকের তারিখ</span>
+                    <span>•</span>
+                    <span id="preview-readtime">৫ মিনিট পাঠ</span>
+                  </div>
+
+                  <h3 id="preview-title" class="text-base font-bold text-slate-900 dark:text-slate-100 mb-2 leading-snug">
+                    পোস্টের শিরোনাম এখানে দেখা যাবে...
+                  </h3>
+
+                  <p id="preview-summary" class="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-3 leading-relaxed">
+                    সংক্ষিপ্ত সারসংক্ষেপ এখানে ফুটে উঠবে...
+                  </p>
+
+                  <div id="preview-file-box" class="hidden mb-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                      <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                      </div>
+                      <div class="overflow-hidden">
+                        <p id="preview-file-name" class="text-xs font-bold truncate">ফাইল.xlsx</p>
+                        <p id="preview-file-size" class="text-[10px] text-slate-400">2.5 MB</p>
+                      </div>
+                    </div>
+                    <span class="text-[11px] font-bold text-brand-600">ডাউনলোড</span>
+                  </div>
+
+                  <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-brand-600 font-bold">
+                    <span>বিস্তারিত পড়ুন →</span>
+                    <span class="text-slate-400 font-normal text-[11px]">১০০% ফ্রি রিসোর্স</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ================= VIEW 4: COMMENTS MODERATION ================= -->
+        <section id="view-comments" class="hidden space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div>
+              <h3 class="text-lg font-bold">পাঠক মন্তব্য ও আলোচনা মডারেশন</h3>
+              <p class="text-xs text-slate-500">ওয়েবসাইটের পাঠকদের করা সমস্ত মন্তব্য পর্যালোচনা ও নিয়ন্ত্রণ করুন</p>
+            </div>
+            <button onclick="renderCommentsView()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-xs font-semibold rounded-xl flex items-center gap-1">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>রিফ্রেশ</span>
+            </button>
+          </div>
+
+          <div id="comments-container" class="space-y-3">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- ================= VIEW 5: FILE REQUESTS INBOX ================= -->
+        <section id="view-requests" class="hidden space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div>
+              <h3 class="text-lg font-bold">পাঠকদের ফাইল রিকোয়েস্ট ইনবক্স</h3>
+              <p class="text-xs text-slate-500">ভিজিটররা কোন কোন বই বা ফাইল ওয়েবসাইটের ফর্মে চেয়েছেন তার তালিকা</p>
+            </div>
+            <button onclick="renderRequestsView()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-xs font-semibold rounded-xl flex items-center gap-1">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>রিফ্রেশ</span>
+            </button>
+          </div>
+
+          <div id="requests-container" class="space-y-3">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- ================= VIEW 6: GITHUB SYNC & BACKUP ================= -->
+        <section id="view-sync" class="hidden space-y-8">
+          
+          <div>
+            <h3 class="text-lg font-bold">GitHub ক্লাউড সিঙ্ক ও সম্পূর্ণ ডেটা ব্যাকআপ</h3>
+            <p class="text-xs text-slate-500">আপনার সমস্ত ডেটা নিরাপদে ক্লাউডে সংরক্ষণ এবং এক ক্লিকে ব্যাকআপ নেওয়ার মাধ্যম</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Card 1: Direct GitHub Push via Token -->
+            <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                  <i data-lucide="github" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold">১. সরাসরি GitHub API অটো-পাবলিশ</h4>
+                  <p class="text-xs text-slate-400">টোকেন দিয়ে এক ক্লিকে GitHub-এ পুশ করুন</p>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                আপনার GitHub Personal Access Token (classic বা fine-grained token with repo scope) বসালে ড্যাশবোর্ড থেকেই সরাসরি আপনার রিপোজিটরির <code class="text-brand-600">data.js</code> ফাইল স্বয়ংক্রিয়ভাবে আপডেট হয়ে যাবে।
+              </p>
+
+              <div>
+                <label class="block text-[11px] font-bold mb-1">GitHub Personal Access Token (PAT)</label>
+                <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+              </div>
+
+              <button id="direct-github-push-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2">
+                <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+                <span>সরাসরি GitHub-এ পাবলিশ করুন</span>
+              </button>
+            </div>
+
+            <!-- Card 2: 1-Click Complete Backup & Restore -->
+            <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center">
+                  <i data-lucide="database" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold">২. সম্পূর্ণ ১-ক্লিক ব্যাকআপ ও রিস্টোর</h4>
+                  <p class="text-xs text-slate-400">কম্পিউটারে সমস্ত পোস্ট ও কমেন্টের কপি রাখুন</p>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                আপনার সমস্ত পোস্ট, কাস্টম এডিট এবং পাঠকদের মন্তব্যের একটি সম্পূর্ণ JSON ব্যাকআপ আপনার কম্পিউটারে সেভ করে রাখতে পারেন।
+              </p>
+
+              <div class="space-y-3 pt-2">
+                <button id="download-full-backup-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                  <span>সম্পূর্ণ ব্যাকআপ ডাউনলোড (JSON)</span>
+                </button>
+
+                <div class="relative">
+                  <input type="file" id="restore-backup-input" accept=".json" class="hidden">
+                  <button onclick="document.getElementById('restore-backup-input').click()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    <span>ব্যাকআপ ফাইল থেকে রিস্টোর করুন</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Download data.js -->
+            <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                  <i data-lucide="file-code" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold">৩. অফলাইন `data.js` ফাইল ডাউনলোড</h4>
+                  <p class="text-xs text-slate-400">লোকাল ফোল্ডারে রিপ্লেস করে গিট পুশ করতে</p>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                ড্যাশবোর্ডের সব কন্টেন্ট সমৃদ্ধ প্রস্তুতকৃত <code class="text-brand-600">data.js</code> ফাইলটি সরাসরি ডাউনলোড করে আপনার প্রোজেক্ট ফোল্ডারে পেস্ট করতে পারেন।
+              </p>
+
+              <button id="download-datajs-btn" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>data.js ফাইল ডাউনলোড করুন</span>
+              </button>
+            </div>
+
+            <!-- Card 4: Copy Code directly -->
+            <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center">
+                  <i data-lucide="copy" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold">৪. সম্পূর্ণ কোড ক্লিপবোর্ডে কপি</h4>
+                  <p class="text-xs text-slate-400">ম্যানুয়ালি GitHub এডিটিংয়ের জন্য</p>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                ১-ক্লিকে সমস্ত পোস্টের জাভাস্ক্রিপ্ট কোড কপি করুন এবং GitHub ওয়েব ব্রাউজারে গিয়ে পেস্ট করে Commit Changes বাটনে ক্লিক করুন।
+              </p>
+
+              <button id="copy-code-btn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white dark:bg-slate-700 dark:hover:bg-slate-600 rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2">
+                <i data-lucide="clipboard" class="w-4 h-4"></i>
+                <span>কোড কপি করুন</span>
+              </button>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ================= VIEW 7: SETTINGS & SECURITY ================= -->
+        <section id="view-settings" class="hidden space-y-8 max-w-2xl">
+          
+          <div>
+            <h3 class="text-lg font-bold">অ্যাডমিন সেটিংস ও নিরাপত্তা</h3>
+            <p class="text-xs text-slate-500">আপনার ড্যাশবোর্ডের পাসওয়ার্ড ও সিস্টেম কনফিগারেশন</p>
+          </div>
+
+          <!-- Password Change Card -->
+          <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/90 shadow-sm space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                <i data-lucide="key" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold">অ্যাডমিন পাসওয়ার্ড পরিবর্তন</h4>
+                <p class="text-xs text-slate-400">শক্তিশালী পাসওয়ার্ড দিয়ে আপনার ড্যাশবোর্ড সুরক্ষিত রাখুন</p>
+              </div>
+            </div>
+
+            <form id="settings-pass-form" class="space-y-3.5 pt-2">
+              <div>
+                <label class="block text-xs font-bold mb-1">বর্তমান পাসওয়ার্ড *</label>
+                <div class="relative flex items-center">
+                  <input type="password" id="settings-cur-pass" required placeholder="বর্তমান পাসওয়ার্ড দিন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <button type="button" onclick="togglePasswordVisibility('settings-cur-pass', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold mb-1">নতুন পাসওয়ার্ড *</label>
+                <div class="relative flex items-center">
+                  <input type="password" id="settings-new-pass" required placeholder="নতুন গোপন পাসওয়ার্ড দিন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <button type="button" onclick="togglePasswordVisibility('settings-new-pass', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
+                <div class="relative flex items-center">
+                  <input type="password" id="settings-confirm-pass" required placeholder="পুনরায় নতুন পাসওয়ার্ড দিন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <button type="button" onclick="togglePasswordVisibility('settings-confirm-pass', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs shadow-md transition-all">
+                পাসওয়ার্ড আপডেট করুন
+              </button>
+            </form>
+          </div>
+
+          <!-- Danger Zone: Reset to Defaults -->
+          <div class="p-6 rounded-3xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 space-y-3">
+            <h4 class="text-sm font-bold text-rose-700 dark:text-rose-400">বিপজ্জনক জোন (Reset to Defaults)</h4>
+            <p class="text-xs text-rose-600/80 dark:text-rose-400/70">
+              আপনি যদি কোনো কারণে আপনার সমস্ত কাস্টম পোস্ট মুছে মূল ১০টি প্রাথমিক পোস্টে ফিরে যেতে চান, তবে নিচের বাটনে ক্লিক করুন।
+            </p>
+            <button id="reset-defaults-btn" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-all">
+              প্রাথমিক ডিফল্ট ডেটায় ফিরে যান
+            </button>
+          </div>
+
+        </section>
+
+      </main>
+
     </div>
+
   </div>
 
-  <!-- ================= MODAL: GITHUB SYNC & EXPORT ================= -->
-  <div id="sync-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex items-center justify-center">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 relative">
-      <button id="close-sync-modal" class="absolute top-5 right-5 p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
-        <i data-lucide="x" class="w-6 h-6"></i>
-      </button>
-
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold">GitHub লাইভ সিঙ্ক ও এক্সপোর্ট</h3>
-          <p class="text-xs text-slate-500">আপনার নতুন ডাটা লাইভ ওয়েবসাইটে পাঠানোর উপায়</p>
-        </div>
-      </div>
-
-      <div class="space-y-4 text-xs">
-        <!-- Option 1: Copy Code -->
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-900 dark:text-slate-100">উপায় ১: ১-ক্লিকে কোড কপি করে GitHub-এ পেস্ট</span>
-            <button id="copy-code-btn" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold">
-              কোড কপি করুন
-            </button>
-          </div>
-          <p class="text-slate-500">কোডটি কপি করে GitHub-এর <code class="text-brand-600">data.js</code> ফাইলে পেস্ট করে Commit করলেই লাইভ হয়ে যাবে।</p>
-        </div>
-
-        <!-- Option 2: Download data.js -->
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-900 dark:text-slate-100">উপায় ২: নতুন `data.js` ফাইল ডাউনলোড</span>
-            <button id="download-datajs-btn" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold">
-              ফাইল ডাউনলোড
-            </button>
-          </div>
-          <p class="text-slate-500">নতুন ফাইলটি ডাউনলোড করে আপনার ফোল্ডারে রিপ্লেস করে গিট পুশ করতে পারেন।</p>
-        </div>
-
-        <!-- Option 3: Direct GitHub API Token (Optional) -->
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-          <span class="font-bold text-slate-900 dark:text-slate-100">উপায় ৩: সরাসরি GitHub টোকেন দিয়ে অটো-পাবলিশ</span>
-          <p class="text-slate-500">GitHub Personal Access Token বসালে ড্যাশবোর্ড থেকেই অটো-পাবলিশ হবে:</p>
-          <input type="password" id="gh-token-input" placeholder="GitHub Personal Access Token (ghp_...)" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs">
-          <button id="direct-github-push-btn" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs">
-            সরাসরি GitHub-এ পাবলিশ করুন
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= MODAL: CHANGE PASSWORD ================= -->
-  <div id="password-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex items-center justify-center">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 p-6 relative">
-      <button id="close-password-modal" onclick="closePasswordModal()" class="absolute top-4 right-4 p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-
-      <div class="text-center mb-5">
-        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-950/60 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-2">
-          <i data-lucide="key-round" class="w-6 h-6"></i>
-        </div>
-        <h3 class="text-lg font-bold">অ্যাডমিন পাসওয়ার্ড পরিবর্তন</h3>
-        <p class="text-xs text-slate-500">আপনার নতুন গোপন পাসওয়ার্ড সেট করুন</p>
-      </div>
-
-      <form id="change-pass-form" class="space-y-3.5">
-        <div>
-          <label class="block text-xs font-semibold mb-1">বর্তমান পাসওয়ার্ড *</label>
-          <div class="relative flex items-center">
-            <input type="password" id="current-pass-input" required placeholder="বর্তমান পাসওয়ার্ড লিখুন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-            <button type="button" onclick="togglePasswordVisibility('current-pass-input', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none" title="পাসওয়ার্ড দেখুন/লুকান">
-              <i data-lucide="eye" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1">নতুন পাসওয়ার্ড *</label>
-          <div class="relative flex items-center">
-            <input type="password" id="new-pass-input" required placeholder="নতুন গোপন পাসওয়ার্ড দিন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-            <button type="button" onclick="togglePasswordVisibility('new-pass-input', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none" title="পাসওয়ার্ড দেখুন/লুকান">
-              <i data-lucide="eye" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
-          <div class="relative flex items-center">
-            <input type="password" id="confirm-pass-input" required placeholder="আবার নতুন পাসওয়ার্ড দিন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-            <button type="button" onclick="togglePasswordVisibility('confirm-pass-input', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none" title="পাসওয়ার্ড দেখুন/লুকান">
-              <i data-lucide="eye" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-        <button type="submit" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md">
-          পাসওয়ার্ড সংরক্ষণ করুন
-        </button>
-      </form>
-    </div>
-  </div>
+  <!-- Toast Notification Container -->
+  <div id="toast-box" class="fixed bottom-6 right-6 z-50 pointer-events-none"></div>
 
   <!-- Scripts -->
   <script src="data.js"></script>
   <script>
-    // Admin Dashboard Logic
+    /**
+     * MedhaKosh Admin Panel v2.0
+     * Complete Enterprise Architecture with Sidebar, Rich Editor, Preview, and Moderation
+     */
     document.addEventListener("DOMContentLoaded", () => {
       const DEFAULT_PASS = "admin123";
-      
+
       // Elements
       const loginScreen = document.getElementById("login-screen");
       const adminApp = document.getElementById("admin-app");
       const loginForm = document.getElementById("login-form");
       const adminPassInput = document.getElementById("admin-password-input");
       const logoutBtn = document.getElementById("logout-btn");
+      
+      const adminSidebar = document.getElementById("admin-sidebar");
+      const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+      const mobileSidebarToggle = document.getElementById("mobile-sidebar-toggle");
+      const closeMobileSidebarBtn = document.getElementById("close-mobile-sidebar-btn");
 
-      const statTotalPosts = document.getElementById("stat-total-posts");
-      const statTotalFiles = document.getElementById("stat-total-files");
-      const statTotalCats = document.getElementById("stat-total-cats");
-      const tableCountLabel = document.getElementById("table-count-label");
-      const postsTableBody = document.getElementById("posts-table-body");
+      const pageTitle = document.getElementById("page-title");
+      const pageSubtitle = document.getElementById("page-subtitle");
 
-      // Modals
-      const postModal = document.getElementById("post-modal");
-      const postModalTitle = document.getElementById("post-modal-title");
-      const openNewPostBtn = document.getElementById("open-new-post-btn");
-      const closePostModal = document.getElementById("close-post-modal");
-      const cancelPostModal = document.getElementById("cancel-post-modal");
+      const adminThemeToggle = document.getElementById("admin-theme-toggle");
+      const adminThemeIcon = document.getElementById("admin-theme-icon");
+
+      // Stats Elements
+      const statPosts = document.getElementById("stat-posts");
+      const statFiles = document.getElementById("stat-files");
+      const statComments = document.getElementById("stat-comments");
+      const statRequests = document.getElementById("stat-requests");
+      const badgeTotalPosts = document.getElementById("badge-total-posts");
+      const badgeTotalComments = document.getElementById("badge-total-comments");
+      const badgeTotalRequests = document.getElementById("badge-total-requests");
+
+      // Views
+      const views = {
+        overview: document.getElementById("view-overview"),
+        posts: document.getElementById("view-posts"),
+        editor: document.getElementById("view-editor"),
+        comments: document.getElementById("view-comments"),
+        requests: document.getElementById("view-requests"),
+        sync: document.getElementById("view-sync"),
+        settings: document.getElementById("view-settings")
+      };
+
+      // Editor Elements
       const postEditorForm = document.getElementById("post-editor-form");
-
       const editPostId = document.getElementById("edit-post-id");
       const postTitle = document.getElementById("post-title");
       const postCategory = document.getElementById("post-category");
@@ -439,95 +952,50 @@
       const fileSize = document.getElementById("file-size");
       const fileUrl = document.getElementById("file-url");
 
-      const syncModal = document.getElementById("sync-modal");
-      const openGithubSyncBtn = document.getElementById("open-github-sync-btn");
-      const closeSyncModal = document.getElementById("close-sync-modal");
-      const copyCodeBtn = document.getElementById("copy-code-btn");
-      const downloadDatajsBtn = document.getElementById("download-datajs-btn");
-      const ghTokenInput = document.getElementById("gh-token-input");
-      const directGithubPushBtn = document.getElementById("direct-github-push-btn");
+      // Preview Elements
+      const previewTitle = document.getElementById("preview-title");
+      const previewCategory = document.getElementById("preview-category");
+      const previewReadtime = document.getElementById("preview-readtime");
+      const previewImage = document.getElementById("preview-image");
+      const previewSummary = document.getElementById("preview-summary");
+      const previewFileBox = document.getElementById("preview-file-box");
+      const previewFileName = document.getElementById("preview-file-name");
+      const previewFileSize = document.getElementById("preview-file-size");
 
-      // Toggle Password Visibility (Eye Icon)
+      // Posts Table & Filter Elements
+      const postsTableBody = document.getElementById("posts-table-body");
+      const postsEmptyMsg = document.getElementById("posts-empty-msg");
+      const postsSearchInput = document.getElementById("posts-search-input");
+      const postsCategoryFilter = document.getElementById("posts-category-filter");
+      const postsFileFilter = document.getElementById("posts-file-filter");
+      const selectAllPosts = document.getElementById("select-all-posts");
+      const bulkDeleteBtn = document.getElementById("bulk-delete-btn");
+
+      // State Data
+      let activeBlogs = [];
+      const savedData = localStorage.getItem("medhakosh_custom_posts");
+      if (savedData) {
+        try { activeBlogs = JSON.parse(savedData); } catch (e) { activeBlogs = [...BLOG_DATA]; }
+      } else {
+        activeBlogs = [...BLOG_DATA];
+      }
+
+      // Check Session
+      if (sessionStorage.getItem("admin_authenticated") === "true") {
+        showAdminApp();
+      }
+
+      // Password Visibility Toggle
       window.togglePasswordVisibility = function(inputId, btn) {
         const input = document.getElementById(inputId);
         if (!input) return;
         const isPass = input.type === "password";
         input.type = isPass ? "text" : "password";
-        const isLarge = inputId === "admin-password-input";
-        const iconSize = isLarge ? "w-5 h-5" : "w-4 h-4";
-        btn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" class="${iconSize}"></i>`;
-        if (window.lucide) lucide.createIcons();
+        btn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+        lucide.createIcons();
       };
 
-      // Password Change Global Functions & Handlers
-      window.openPasswordModal = function() {
-        const form = document.getElementById("change-pass-form");
-        if (form) form.reset();
-        const modal = document.getElementById("password-modal");
-        if (modal) modal.classList.remove("hidden");
-        if (window.lucide) lucide.createIcons();
-      };
-
-      window.closePasswordModal = function() {
-        const modal = document.getElementById("password-modal");
-        if (modal) modal.classList.add("hidden");
-      };
-
-      const passwordModal = document.getElementById("password-modal");
-      const openChangePassBtn = document.getElementById("open-change-pass-btn");
-      const closePasswordModalBtn = document.getElementById("close-password-modal");
-      const changePassForm = document.getElementById("change-pass-form");
-      const currentPassInput = document.getElementById("current-pass-input");
-      const newPassInput = document.getElementById("new-pass-input");
-      const confirmPassInput = document.getElementById("confirm-pass-input");
-
-      if (openChangePassBtn) {
-        openChangePassBtn.addEventListener("click", window.openPasswordModal);
-      }
-      if (closePasswordModalBtn) {
-        closePasswordModalBtn.addEventListener("click", window.closePasswordModal);
-      }
-
-      if (changePassForm) {
-        changePassForm.addEventListener("submit", (e) => {
-          e.preventDefault();
-          const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
-          if (currentPassInput.value !== storedPass) {
-            alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
-            return;
-          }
-          if (newPassInput.value.length < 4) {
-            alert("পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে!");
-            return;
-          }
-          if (newPassInput.value !== confirmPassInput.value) {
-            alert("নতুন পাসওয়ার্ড দুটি মিলছে না!");
-            return;
-          }
-          localStorage.setItem("admin_password", newPassInput.value);
-          window.closePasswordModal();
-          alert("আপনার অ্যাডমিন পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! পরবর্তী লগইনে এই নতুন পাসওয়ার্ডটি ব্যবহার করুন।");
-        });
-      }
-
-      // Working Blog List (from LocalStorage or data.js)
-      let activeBlogs = [];
-      const savedData = localStorage.getItem("medhakosh_custom_posts");
-      if (savedData) {
-        try {
-          activeBlogs = JSON.parse(savedData);
-        } catch (e) {
-          activeBlogs = [...BLOG_DATA];
-        }
-      } else {
-        activeBlogs = [...BLOG_DATA];
-      }
-
-      // Check session
-      if (sessionStorage.getItem("admin_authenticated") === "true") {
-        showAdminApp();
-      }
-
+      // Login Form Submit
       loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
@@ -535,10 +1003,11 @@
           sessionStorage.setItem("admin_authenticated", "true");
           showAdminApp();
         } else {
-          alert("ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন।");
+          alert("ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন। (ডিফল্ট: admin123)");
         }
       });
 
+      // Logout
       logoutBtn.addEventListener("click", () => {
         sessionStorage.removeItem("admin_authenticated");
         loginScreen.classList.remove("hidden");
@@ -548,88 +1017,367 @@
       function showAdminApp() {
         loginScreen.classList.add("hidden");
         adminApp.classList.remove("hidden");
-        renderStats();
-        renderTable();
+        initTheme();
+        updateAllStats();
+        renderOverview();
+        renderPostsTable();
+        populateCategoryFilter();
         lucide.createIcons();
       }
 
-      function saveData() {
-        localStorage.setItem("medhakosh_custom_posts", JSON.stringify(activeBlogs));
-        renderStats();
-        renderTable();
+      // Sidebar Mobile Toggle
+      function openMobileSidebar() {
+        adminSidebar.classList.remove("-translate-x-full");
+        sidebarBackdrop.classList.remove("hidden");
       }
+      function closeMobileSidebar() {
+        adminSidebar.classList.add("-translate-x-full");
+        sidebarBackdrop.classList.add("hidden");
+      }
+      mobileSidebarToggle.addEventListener("click", openMobileSidebar);
+      closeMobileSidebarBtn.addEventListener("click", closeMobileSidebar);
+      sidebarBackdrop.addEventListener("click", closeMobileSidebar);
 
-      function renderStats() {
-        statTotalPosts.textContent = activeBlogs.length;
+      // View Switcher
+      window.switchView = function(viewKey) {
+        closeMobileSidebar();
+        Object.keys(views).forEach(key => {
+          if (views[key]) views[key].classList.add("hidden");
+        });
+        document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+        
+        const targetView = views[viewKey];
+        if (targetView) targetView.classList.remove("hidden");
+        
+        const targetNav = document.getElementById(`nav-overview`);
+        const currentNav = document.getElementById(`nav-${viewKey}`);
+        if (currentNav) currentNav.classList.add("active");
+
+        // Header titles
+        const titles = {
+          overview: { title: "ড্যাশবোর্ড ওভারভিউ", subtitle: "আপনার ওয়েবসাইটের সম্পূর্ণ পরিসংখ্যান ও সর্বশেষ তথ্য" },
+          posts: { title: "সমস্ত পোস্ট ও ডাউনলোড ফাইল", subtitle: "পোস্ট অনুসন্ধান, সম্পাদনা ও ম্যানেজমেন্ট" },
+          editor: { title: "পোস্ট এডিটর ও লাইভ প্রিভিউ", subtitle: "নতুন আর্টিকেল তৈরি এবং রিয়েল-টাইম প্রিভিউ" },
+          comments: { title: "পাঠক মন্তব্য ও মডারেশন", subtitle: "পাঠকদের মন্তব্য পর্যালোচনা ও নিয়ন্ত্রণ করুন" },
+          requests: { title: "ফাইল রিকোয়েস্ট ইনবক্স", subtitle: "পাঠকরা যে বই বা ফাইলের অনুরোধ করেছেন" },
+          sync: { title: "GitHub সিঙ্ক ও ব্যাকআপ", subtitle: "ক্লাউড সিঙ্ক, ব্যাকআপ ডাউনলোড ও রিস্টোর" },
+          settings: { title: "সেটিংস ও নিরাপত্তা", subtitle: "পাসওয়ার্ড ও সিস্টেম নিয়ন্ত্রণ" }
+        };
+
+        if (titles[viewKey]) {
+          pageTitle.textContent = titles[viewKey].title;
+          pageSubtitle.textContent = titles[viewKey].subtitle;
+        }
+
+        if (viewKey === 'overview') renderOverview();
+        if (viewKey === 'posts') renderPostsTable();
+        if (viewKey === 'comments') renderCommentsView();
+        if (viewKey === 'requests') renderRequestsView();
+
+        lucide.createIcons();
+      };
+
+      // Toast Notification
+      window.showAdminToast = function(msg) {
+        const box = document.getElementById("toast-box");
+        const toast = document.createElement("div");
+        toast.className = "mb-3 px-4 py-3 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-semibold border border-slate-700 pointer-events-auto transition-all";
+        toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 dark:text-emerald-600"></i><span>${msg}</span>`;
+        box.appendChild(toast);
+        lucide.createIcons();
+        setTimeout(() => { if (toast.parentElement) toast.parentElement.removeChild(toast); }, 3200);
+      };
+
+      // ================= STATS & OVERVIEW =================
+      function updateAllStats() {
+        const totalPosts = activeBlogs.length;
         const totalFiles = activeBlogs.filter(p => p.downloadFile).length;
-        statTotalFiles.textContent = totalFiles;
-        const cats = new Set(activeBlogs.map(p => p.category));
-        statTotalCats.textContent = cats.size;
-        tableCountLabel.textContent = `মোট ${activeBlogs.length}টি পোস্ট বিদ্যমান`;
+        
+        let totalComments = 0;
+        activeBlogs.forEach(p => {
+          try {
+            const c = JSON.parse(localStorage.getItem(`medhakosh_comments_${p.id}`) || "[]");
+            totalComments += c.length;
+          } catch(e) {}
+        });
+
+        let totalRequests = 0;
+        try {
+          const reqs = JSON.parse(localStorage.getItem("medhakosh_file_requests") || "[]");
+          totalRequests = reqs.length;
+        } catch(e) {}
+
+        if (statPosts) statPosts.textContent = totalPosts;
+        if (statFiles) statFiles.textContent = totalFiles;
+        if (statComments) statComments.textContent = totalComments;
+        if (statRequests) statRequests.textContent = totalRequests;
+
+        if (badgeTotalPosts) badgeTotalPosts.textContent = totalPosts;
+        if (badgeTotalComments) badgeTotalComments.textContent = totalComments;
+        if (badgeTotalRequests) badgeTotalRequests.textContent = totalRequests;
       }
 
-      function renderTable() {
+      function renderOverview() {
+        updateAllStats();
+        // Recent 4 posts
+        const recentPostsContainer = document.getElementById("overview-recent-posts");
+        recentPostsContainer.innerHTML = "";
+        const recentPosts = activeBlogs.slice(0, 4);
+        recentPosts.forEach(post => {
+          const item = document.createElement("div");
+          item.className = "py-3 flex items-center justify-between gap-3";
+          item.innerHTML = `
+            <div class="flex items-center gap-3 overflow-hidden">
+              <img src="${post.coverImage}" class="w-10 h-10 rounded-xl object-cover shrink-0 bg-slate-100">
+              <div class="overflow-hidden">
+                <h4 class="text-xs font-bold line-clamp-1">${post.title}</h4>
+                <p class="text-[11px] text-slate-400">${post.category} • ${post.date}</p>
+              </div>
+            </div>
+            <button onclick="editPost(${post.id})" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 transition-colors shrink-0">
+              এডিট
+            </button>
+          `;
+          recentPostsContainer.appendChild(item);
+        });
+
+        // Recent Requests preview
+        const recentReqContainer = document.getElementById("overview-recent-requests");
+        recentReqContainer.innerHTML = "";
+        let requests = [];
+        try { requests = JSON.parse(localStorage.getItem("medhakosh_file_requests") || "[]"); } catch(e) {}
+
+        if (requests.length === 0) {
+          recentReqContainer.innerHTML = `<p class="py-4 text-xs text-slate-400 italic">বর্তমানে কোনো নতুন ফাইল রিকোয়েস্ট নেই।</p>`;
+        } else {
+          requests.slice(0, 4).forEach(req => {
+            const item = document.createElement("div");
+            item.className = "py-3 flex items-center justify-between gap-3 text-xs";
+            item.innerHTML = `
+              <div>
+                <p class="font-bold line-clamp-1">${req.topic}</p>
+                <p class="text-[11px] text-slate-400">অনুরোধকারী: ${req.user} • ${req.date}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${req.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}">
+                ${req.status === 'completed' ? 'সম্পন্ন' : 'অপেক্ষমাণ'}
+              </span>
+            `;
+            recentReqContainer.appendChild(item);
+          });
+        }
+      }
+
+      // ================= POSTS TABLE & FILTERING =================
+      function populateCategoryFilter() {
+        const uniqueCats = new Set(activeBlogs.map(p => p.category));
+        postsCategoryFilter.innerHTML = '<option value="all">সব ক্যাটাগরি</option>';
+        uniqueCats.forEach(cat => {
+          const opt = document.createElement("option");
+          opt.value = cat;
+          opt.textContent = cat;
+          postsCategoryFilter.appendChild(opt);
+        });
+      }
+
+      function getFilteredPosts() {
+        const query = (postsSearchInput.value || "").toLowerCase().trim();
+        const cat = postsCategoryFilter.value;
+        const fileFilt = postsFileFilter.value;
+
+        return activeBlogs.filter(p => {
+          const matchQuery = !query || p.title.toLowerCase().includes(query) || p.summary.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
+          const matchCat = cat === "all" || p.category === cat;
+          let matchFile = true;
+          if (fileFilt === "with-file") matchFile = !!p.downloadFile;
+          if (fileFilt === "without-file") matchFile = !p.downloadFile;
+          return matchQuery && matchCat && matchFile;
+        });
+      }
+
+      function renderPostsTable() {
         postsTableBody.innerHTML = "";
-        activeBlogs.forEach(post => {
+        const filtered = getFilteredPosts();
+
+        if (filtered.length === 0) {
+          postsEmptyMsg.classList.remove("hidden");
+        } else {
+          postsEmptyMsg.classList.add("hidden");
+        }
+
+        filtered.forEach(post => {
           const tr = document.createElement("tr");
           tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors";
           
           tr.innerHTML = `
-            <td class="px-6 py-4 font-mono font-bold text-xs text-brand-600">#${post.id}</td>
-            <td class="px-6 py-4">
+            <td class="px-4 py-3.5 text-center">
+              <input type="checkbox" value="${post.id}" class="post-checkbox rounded text-brand-600">
+            </td>
+            <td class="px-4 py-3.5 font-mono font-bold text-xs text-brand-600">#${post.id}</td>
+            <td class="px-4 py-3.5">
+              <img src="${post.coverImage}" class="w-10 h-10 rounded-xl object-cover bg-slate-100">
+            </td>
+            <td class="px-4 py-3.5">
               <p class="font-bold text-slate-900 dark:text-slate-100 line-clamp-1">${post.title}</p>
-              <span class="inline-block mt-1 text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold">${post.category}</span>
+              <span class="inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold">${post.category}</span>
             </td>
-            <td class="px-6 py-4 text-xs text-slate-500 whitespace-nowrap">
-              ${post.date}<br><span class="text-[11px] text-slate-400">${post.readTime}</span>
+            <td class="px-4 py-3.5 text-xs text-slate-500 whitespace-nowrap">
+              ${post.date}<br><span class="text-[10px] text-slate-400">${post.readTime}</span>
             </td>
-            <td class="px-6 py-4 text-xs">
+            <td class="px-4 py-3.5 text-xs">
               ${post.downloadFile ? `
-                <span class="inline-flex items-center gap-1 text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-lg">
+                <span class="inline-flex items-center gap-1 text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-lg text-[11px]">
                   <i data-lucide="check" class="w-3.5 h-3.5"></i>
                   ${post.downloadFile.name}
                 </span>
               ` : `
-                <span class="text-slate-400 text-xs">কোনো ফাইল নেই</span>
+                <span class="text-slate-400 text-xs">-</span>
               `}
             </td>
-            <td class="px-6 py-4 text-right whitespace-nowrap space-x-2">
-              <button onclick="editPost(${post.id})" class="px-2.5 py-1.5 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 dark:hover:bg-indigo-900 rounded-lg transition-colors">
+            <td class="px-4 py-3.5 text-right whitespace-nowrap space-x-1.5">
+              <button onclick="editPost(${post.id})" class="px-2.5 py-1 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 dark:hover:bg-indigo-900 rounded-lg transition-colors">
                 এডিট
               </button>
-              <button onclick="deletePost(${post.id})" class="px-2.5 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:hover:bg-rose-900 rounded-lg transition-colors">
+              <button onclick="deletePost(${post.id})" class="px-2.5 py-1 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:hover:bg-rose-900 rounded-lg transition-colors">
                 ডিলিট
               </button>
             </td>
           `;
           postsTableBody.appendChild(tr);
         });
+
+        // Checkbox events
+        document.querySelectorAll(".post-checkbox").forEach(cb => {
+          cb.addEventListener("change", updateBulkDeleteBtn);
+        });
+
         lucide.createIcons();
       }
 
-      // Checkbox toggle for file
-      hasFileCheck.addEventListener("change", () => {
-        if (hasFileCheck.checked) {
-          fileFields.classList.remove("hidden");
+      // Filter events
+      postsSearchInput.addEventListener("input", renderPostsTable);
+      postsCategoryFilter.addEventListener("change", renderPostsTable);
+      postsFileFilter.addEventListener("change", renderPostsTable);
+
+      // Bulk Select All
+      selectAllPosts.addEventListener("change", (e) => {
+        const checked = e.target.checked;
+        document.querySelectorAll(".post-checkbox").forEach(cb => cb.checked = checked);
+        updateBulkDeleteBtn();
+      });
+
+      function updateBulkDeleteBtn() {
+        const checkedBoxes = document.querySelectorAll(".post-checkbox:checked");
+        if (checkedBoxes.length > 0) {
+          bulkDeleteBtn.classList.remove("hidden");
+          bulkDeleteBtn.querySelector("span").textContent = `নির্বাচিত ${checkedBoxes.length}টি ডিলিট`;
         } else {
-          fileFields.classList.add("hidden");
+          bulkDeleteBtn.classList.add("hidden");
+        }
+      }
+
+      bulkDeleteBtn.addEventListener("click", () => {
+        const checkedBoxes = document.querySelectorAll(".post-checkbox:checked");
+        const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+        if (confirm(`আপনি কি সত্যিই নির্বাচিত ${idsToDelete.length}টি পোস্ট ডিলিট করতে চান?`)) {
+          activeBlogs = activeBlogs.filter(p => !idsToDelete.includes(p.id));
+          saveActiveBlogs();
+          selectAllPosts.checked = false;
+          bulkDeleteBtn.classList.add("hidden");
+          renderPostsTable();
+          showAdminToast(`${idsToDelete.length}টি পোস্ট সফলভাবে মুছে ফেলা হয়েছে!`);
         }
       });
 
-      // Open new post modal
-      openNewPostBtn.addEventListener("click", () => {
-        postModalTitle.textContent = "নতুন ব্লগ পোস্ট তৈরি করুন";
+      function saveActiveBlogs() {
+        localStorage.setItem("medhakosh_custom_posts", JSON.stringify(activeBlogs));
+        updateAllStats();
+        populateCategoryFilter();
+      }
+
+      // ================= 3. EDITOR & LIVE PREVIEW =================
+      window.prepareNewPost = function() {
         postEditorForm.reset();
         editPostId.value = "";
         hasFileCheck.checked = false;
         fileFields.classList.add("hidden");
-        postModal.classList.remove("hidden");
+        document.getElementById("editor-heading").textContent = "নতুন পোস্ট লিখুন ও লাইভ প্রিভিউ";
+        updateLivePreview();
+      };
+
+      // Form input real-time sync with preview
+      [postTitle, postCategory, postReadtime, postImage, postSummary, fileName, fileSize].forEach(input => {
+        input.addEventListener("input", updateLivePreview);
       });
 
-      closePostModal.addEventListener("click", () => postModal.classList.add("hidden"));
-      cancelPostModal.addEventListener("click", () => postModal.classList.add("hidden"));
+      hasFileCheck.addEventListener("change", () => {
+        if (hasFileCheck.checked) {
+          fileFields.classList.remove("hidden");
+          previewFileBox.classList.remove("hidden");
+        } else {
+          fileFields.classList.add("hidden");
+          previewFileBox.classList.add("hidden");
+        }
+        updateLivePreview();
+      });
 
-      // Form Submit (Create or Update)
+      function updateLivePreview() {
+        previewTitle.textContent = postTitle.value || "পোস্টের শিরোনাম এখানে দেখা যাবে...";
+        previewCategory.textContent = postCategory.value || "ক্যাটাগরি";
+        previewReadtime.textContent = postReadtime.value || "৫ মিনিট পাঠ";
+        previewImage.src = postImage.value || "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80";
+        previewSummary.textContent = postSummary.value || "সংক্ষিপ্ত সারসংক্ষেপ এখানে ফুটে উঠবে...";
+
+        if (hasFileCheck.checked) {
+          previewFileBox.classList.remove("hidden");
+          previewFileName.textContent = fileName.value || "নোটস.pdf";
+          previewFileSize.textContent = fileSize.value || "2.5 MB";
+        } else {
+          previewFileBox.classList.add("hidden");
+        }
+      }
+
+      // Quick image presets
+      window.setImagePreset = function(type) {
+        const presets = {
+          accounting: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80",
+          microcredit: "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=800&q=80",
+          office: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
+          tech: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80"
+        };
+        postImage.value = presets[type] || presets.office;
+        updateLivePreview();
+      };
+
+      window.setCategory = function(cat) {
+        postCategory.value = cat;
+        updateLivePreview();
+      };
+
+      // Rich Text Toolbar helpers
+      window.insertFormat = function(type) {
+        const area = postContent;
+        const start = area.selectionStart;
+        const end = area.selectionEnd;
+        const selText = area.value.substring(start, end);
+
+        let insert = "";
+        switch(type) {
+          case 'bold': insert = `<strong>${selText || 'বোল্ড টেক্সট'}</strong>`; break;
+          case 'italic': insert = `<em>${selText || 'ইটালিক টেক্সট'}</em>`; break;
+          case 'h2': insert = `\n<h2 class="text-xl font-bold mt-6 mb-3 text-slate-900 dark:text-slate-100">${selText || 'মূল অনুচ্ছেদের শিরোনাম'}</h2>\n`; break;
+          case 'h3': insert = `\n<h3 class="text-lg font-bold mt-4 mb-2 text-indigo-600 dark:text-indigo-400">${selText || 'উপ-শিরোনাম'}</h3>\n`; break;
+          case 'ul': insert = `\n<ul class="list-disc pl-5 space-y-1 my-3">\n  <li>${selText || 'প্রথম পয়েন্ট'}</li>\n  <li>দ্বিতীয় পয়েন্ট</li>\n</ul>\n`; break;
+          case 'quote': insert = `\n<blockquote class="border-l-4 border-brand-500 pl-4 py-2 italic my-4 text-slate-600 dark:text-slate-400">\n  ${selText || 'উদ্ধৃতি বা বিশেষ তথ্য...'}\n</blockquote>\n`; break;
+          case 'link': insert = `<a href="https://example.com" class="text-brand-600 underline font-semibold">${selText || 'লিংক টেক্সট'}</a>`; break;
+          case 'image': insert = `\n<img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80" alt="ছবি" class="rounded-2xl my-4 w-full">\n`; break;
+          case 'hr': insert = `\n<hr class="my-6 border-slate-200 dark:border-slate-800">\n`; break;
+        }
+
+        area.value = area.value.substring(0, start) + insert + area.value.substring(end);
+        area.focus();
+      };
+
+      // Post Editor Form Submit
       postEditorForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const idVal = editPostId.value ? parseInt(editPostId.value) : null;
@@ -638,27 +1386,25 @@
           name: fileName.value || "নোটস.pdf",
           type: fileType.value || "pdf",
           size: fileSize.value || "2.5 MB",
-          downloads: 10,
+          downloads: 15,
           url: fileUrl.value || "#"
         } : null;
 
         if (idVal) {
-          // Update existing
-          const postIndex = activeBlogs.findIndex(p => p.id === idVal);
-          if (postIndex !== -1) {
-            activeBlogs[postIndex] = {
-              ...activeBlogs[postIndex],
+          const idx = activeBlogs.findIndex(p => p.id === idVal);
+          if (idx !== -1) {
+            activeBlogs[idx] = {
+              ...activeBlogs[idx],
               title: postTitle.value,
               category: postCategory.value,
               readTime: postReadtime.value || "৫ মিনিট পাঠ",
-              coverImage: postImage.value || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80",
+              coverImage: postImage.value || "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
               summary: postSummary.value,
               content: postContent.value || `<p class="mb-4">${postSummary.value}</p>`,
               downloadFile: downloadObj
             };
           }
         } else {
-          // Create new
           const nextId = activeBlogs.length > 0 ? Math.max(...activeBlogs.map(p => p.id)) + 1 : 1;
           const options = { year: 'numeric', month: 'long', day: 'numeric' };
           const formattedDate = new Date().toLocaleDateString('bn-BD', options);
@@ -669,25 +1415,26 @@
             category: postCategory.value,
             date: formattedDate,
             readTime: postReadtime.value || "৫ মিনিট পাঠ",
-            coverImage: postImage.value || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80",
+            coverImage: postImage.value || "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
             summary: postSummary.value,
             content: postContent.value || `<p class="mb-4">${postSummary.value}</p>`,
             downloadFile: downloadObj
           };
-          activeBlogs.unshift(newPost); // Add at top
+          activeBlogs.unshift(newPost);
         }
 
-        saveData();
-        postModal.classList.add("hidden");
-        alert("পোস্টটি সফলভাবে সেভ হয়েছে! মূল ওয়েবসাইটে সাথে সাথে আপডেট হয়ে গেছে।");
+        saveActiveBlogs();
+        showAdminToast("পোস্টটি সফলভাবে সেভ ও লাইভ করা হয়েছে!");
+        switchView("posts");
       });
 
-      // Global Edit Handler
+      // Edit Post Helper
       window.editPost = function(id) {
         const post = activeBlogs.find(p => p.id === id);
         if (!post) return;
 
-        postModalTitle.textContent = "ব্লগ পোস্ট এডিট করুন";
+        switchView("editor");
+        document.getElementById("editor-heading").textContent = `পোস্ট এডিট করুন: #${post.id}`;
         editPostId.value = post.id;
         postTitle.value = post.title;
         postCategory.value = post.category;
@@ -708,18 +1455,161 @@
           fileFields.classList.add("hidden");
         }
 
-        postModal.classList.remove("hidden");
+        updateLivePreview();
       };
 
-      // Global Delete Handler
+      // Delete Post Helper
       window.deletePost = function(id) {
         if (confirm(`আপনি কি সত্যিই #${id} নম্বর পোস্টটি ডিলিট করতে চান?`)) {
           activeBlogs = activeBlogs.filter(p => p.id !== id);
-          saveData();
+          saveActiveBlogs();
+          renderPostsTable();
+          showAdminToast(`পোস্ট #${id} ডিলিট করা হয়েছে।`);
         }
       };
 
-      // Generate Data.js content string
+      // ================= 4. COMMENTS MODERATION =================
+      function renderCommentsView() {
+        const container = document.getElementById("comments-container");
+        container.innerHTML = "";
+
+        let allComments = [];
+        activeBlogs.forEach(post => {
+          try {
+            const key = `medhakosh_comments_${post.id}`;
+            const cList = JSON.parse(localStorage.getItem(key) || "[]");
+            cList.forEach((c, idx) => {
+              allComments.push({ ...c, postId: post.id, postTitle: post.title, index: idx });
+            });
+          } catch(e) {}
+        });
+
+        if (allComments.length === 0) {
+          container.innerHTML = `
+            <div class="py-12 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800">
+              <i data-lucide="message-square-off" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="text-sm font-semibold">কোনো পাঠক মন্তব্য পাওয়া যায়নি</p>
+              <p class="text-xs text-slate-400 mt-1">পাঠকরা ওয়েবসাইটে কমেন্ট করলে এখানে প্রদর্শিত হবে।</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        allComments.forEach(comm => {
+          const card = document.createElement("div");
+          card.className = "p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4";
+          card.innerHTML = `
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-900 dark:text-slate-100">${comm.name}</span>
+                <span class="text-[10px] text-slate-400">• ${comm.date}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-xs">পোস্ট: ${comm.postTitle}</span>
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${comm.text}</p>
+            </div>
+            <button onclick="deleteComment(${comm.postId}, ${comm.index})" class="px-3 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:hover:bg-rose-900 rounded-xl transition-colors shrink-0 flex items-center gap-1">
+              <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+              <span>মুছে ফেলুন</span>
+            </button>
+          `;
+          container.appendChild(card);
+        });
+
+        lucide.createIcons();
+      }
+
+      window.deleteComment = function(postId, index) {
+        if (confirm("আপনি কি মন্তব্যটি মুছে ফেলতে চান?")) {
+          const key = `medhakosh_comments_${postId}`;
+          try {
+            const list = JSON.parse(localStorage.getItem(key) || "[]");
+            list.splice(index, 1);
+            localStorage.setItem(key, JSON.stringify(list));
+            renderCommentsView();
+            updateAllStats();
+            showAdminToast("মন্তব্য সফলভাবে মুছে ফেলা হয়েছে!");
+          } catch(e) {}
+        }
+      };
+
+      // ================= 5. FILE REQUESTS INBOX =================
+      function renderRequestsView() {
+        const container = document.getElementById("requests-container");
+        container.innerHTML = "";
+
+        let requests = [];
+        try {
+          requests = JSON.parse(localStorage.getItem("medhakosh_file_requests") || "[]");
+        } catch(e) {
+          requests = [];
+        }
+
+        // Seed 2 realistic sample requests if empty
+        if (requests.length === 0) {
+          requests = [
+            { id: 101, user: "md.rahim@gmail.com", topic: "এইচএসসি পদার্থবিজ্ঞান সম্পূর্ণ হ্যান্ডনোট", notes: "২০২৬ ব্যাচের শর্ট সিলেবাস অনুযায়ী তৈরি নোট প্রয়োজন।", date: "১৫ অক্টোবর ২০২৬", status: "pending" },
+            { id: 102, user: "হাসান মাহমুদ", topic: "এনজিও অডিট চেকলিস্ট এক্সেল শিট", notes: "অভ্যন্তরীণ অডিটের জন্য ফর্মুলাযুক্ত রেডি ফাইল পেলে খুব উপকার হতো।", date: "১৪ অক্টোবর ২০২৬", status: "completed" }
+          ];
+          localStorage.setItem("medhakosh_file_requests", JSON.stringify(requests));
+        }
+
+        requests.forEach(req => {
+          const card = document.createElement("div");
+          card.className = "p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4";
+          card.innerHTML = `
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-900 dark:text-slate-100">${req.topic}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${req.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}">
+                  ${req.status === 'completed' ? 'সম্পন্ন' : 'অপেক্ষমাণ'}
+                </span>
+                <span class="text-[10px] text-slate-400">• ${req.date}</span>
+              </div>
+              <p class="text-xs text-slate-500"><strong class="text-slate-700 dark:text-slate-300">অনুরোধকারী:</strong> ${req.user}</p>
+              ${req.notes ? `<p class="text-xs text-slate-600 dark:text-slate-400 italic">"${req.notes}"</p>` : ''}
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="toggleRequestStatus(${req.id})" class="px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors ${
+                req.status === 'completed' ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+              }">
+                ${req.status === 'completed' ? 'আবার পেন্ডিং করুন' : 'সম্পন্ন মার্ক করুন'}
+              </button>
+              <button onclick="deleteRequest(${req.id})" class="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors" title="মুছে ফেলুন">
+                <i data-lucide="trash" class="w-4 h-4"></i>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        lucide.createIcons();
+      }
+
+      window.toggleRequestStatus = function(id) {
+        let requests = JSON.parse(localStorage.getItem("medhakosh_file_requests") || "[]");
+        const idx = requests.findIndex(r => r.id === id);
+        if (idx !== -1) {
+          requests[idx].status = requests[idx].status === "completed" ? "pending" : "completed";
+          localStorage.setItem("medhakosh_file_requests", JSON.stringify(requests));
+          renderRequestsView();
+          updateAllStats();
+        }
+      };
+
+      window.deleteRequest = function(id) {
+        if (confirm("অনুরোধটি মুছে ফেলতে চান?")) {
+          let requests = JSON.parse(localStorage.getItem("medhakosh_file_requests") || "[]");
+          requests = requests.filter(r => r.id !== id);
+          localStorage.setItem("medhakosh_file_requests", JSON.stringify(requests));
+          renderRequestsView();
+          updateAllStats();
+          showAdminToast("অনুরোধ তালিকা থেকে সরানো হয়েছে।");
+        }
+      };
+
+      // ================= 6. SYNC & BACKUP =================
       function generateDataJsContent() {
         const categories = ["সব ক্যাটাগরি", ...new Set(activeBlogs.map(p => p.category))];
         return `/**
@@ -733,39 +1623,78 @@ const CATEGORIES = ${JSON.stringify(categories, null, 2)};
 `;
       }
 
-      // Sync modal handlers
-      openGithubSyncBtn.addEventListener("click", () => syncModal.classList.remove("hidden"));
-      closeSyncModal.addEventListener("click", () => syncModal.classList.add("hidden"));
-
       // Copy Code
-      copyCodeBtn.addEventListener("click", () => {
+      document.getElementById("copy-code-btn").addEventListener("click", () => {
         navigator.clipboard.writeText(generateDataJsContent()).then(() => {
-          alert("কোড সফলভাবে কপি হয়েছে! এবার GitHub-এর data.js ফাইলে পেস্ট করে Commit করুন।");
+          showAdminToast("কোড ক্লিপবোর্ডে কপি হয়েছে!");
         });
       });
 
-      // Download file
-      downloadDatajsBtn.addEventListener("click", () => {
+      // Download data.js
+      document.getElementById("download-datajs-btn").addEventListener("click", () => {
         const blob = new Blob([generateDataJsContent()], { type: "text/javascript;charset=utf-8" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = "data.js";
         a.click();
+        showAdminToast("data.js ফাইল ডাউনলোড শুরু হয়েছে...");
       });
 
-      // Direct GitHub Push
-      directGithubPushBtn.addEventListener("click", async () => {
-        const token = ghTokenInput.value.trim();
+      // Full JSON Backup
+      document.getElementById("download-full-backup-btn").addEventListener("click", () => {
+        const backupObject = {
+          date: new Date().toISOString(),
+          posts: activeBlogs,
+          requests: JSON.parse(localStorage.getItem("medhakosh_file_requests") || "[]")
+        };
+        const blob = new Blob([JSON.stringify(backupObject, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `medhakosh_backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        showAdminToast("সম্পূর্ণ ব্যাকআপ ফাইল ডাউনলোড সম্পন্ন!");
+      });
+
+      // Restore JSON Backup
+      document.getElementById("restore-backup-input").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const parsed = JSON.parse(evt.target.result);
+            if (parsed.posts && Array.isArray(parsed.posts)) {
+              activeBlogs = parsed.posts;
+              saveActiveBlogs();
+              if (parsed.requests) {
+                localStorage.setItem("medhakosh_file_requests", JSON.stringify(parsed.requests));
+              }
+              showAdminToast("ব্যাকআপ সফলভাবে রিস্টোর হয়েছে!");
+              switchView("overview");
+            } else {
+              alert("ত্রুটি: ব্যাকআপ ফাইলটির ফরম্যাট সঠিক নয়!");
+            }
+          } catch(err) {
+            alert("ফাইল পড়তে সমস্যা হয়েছে: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      // GitHub API Direct Push
+      document.getElementById("direct-github-push-btn").addEventListener("click", async () => {
+        const btn = document.getElementById("direct-github-push-btn");
+        const token = document.getElementById("gh-token-input").value.trim();
         if (!token) {
-          alert("অনুগ্রহ করে আপনার GitHub Personal Access Token দিন!");
+          alert("অনুগ্রহ করে আপনার GitHub Personal Access Token (PAT) দিন!");
           return;
         }
 
         try {
-          directGithubPushBtn.disabled = true;
-          directGithubPushBtn.textContent = "পাবলিশ হচ্ছে, অপেক্ষা করুন...";
+          btn.disabled = true;
+          btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>পাবলিশ হচ্ছে, অপেক্ষা করুন...</span>`;
+          lucide.createIcons();
 
-          // 1. Get current SHA of data.js
           const getRes = await fetch("https://api.github.com/repos/engr-shamim95/medhakosh/contents/data.js", {
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -773,15 +1702,13 @@ const CATEGORIES = ${JSON.stringify(categories, null, 2)};
             }
           });
 
-          if (!getRes.ok) throw new Error("GitHub থেকে data.js ফাইল খুঁজে পাওয়া যায়নি বা টোকেন সঠিক নয়।");
+          if (!getRes.ok) throw new Error("GitHub রিপোজিটরি খুঁজে পাওয়া যায়নি বা টোকেন সঠিক নয়।");
           const fileInfo = await getRes.json();
           const sha = fileInfo.sha;
 
-          // 2. Encode content to base64
           const newContent = generateDataJsContent();
           const base64Content = btoa(unescape(encodeURIComponent(newContent)));
 
-          // 3. Put request to update file
           const putRes = await fetch("https://api.github.com/repos/engr-shamim95/medhakosh/contents/data.js", {
             method: "PUT",
             headers: {
@@ -790,15 +1717,14 @@ const CATEGORIES = ${JSON.stringify(categories, null, 2)};
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              message: "Update data.js via Admin Dashboard",
+              message: "Update data.js via Admin Dashboard Pro",
               content: base64Content,
               sha: sha
             })
           });
 
           if (putRes.ok) {
-            alert("অভিনন্দন! আপনার পরিবর্তন সরাসরি GitHub-এ সেভ হয়েছে এবং লাইভ সাইটে আপডেট হয়ে গেছে!");
-            syncModal.classList.add("hidden");
+            alert("অভিনন্দন! আপনার ডেটা সফলভাবে সরাসরি GitHub-এ পুশ হয়েছে এবং লাইভ ওয়েবসাইটে আপডেট হয়ে গেছে!");
           } else {
             const errData = await putRes.json();
             alert("পাবলিশ ব্যর্থ হয়েছে: " + (errData.message || "Unknown error"));
@@ -806,10 +1732,70 @@ const CATEGORIES = ${JSON.stringify(categories, null, 2)};
         } catch (err) {
           alert("ত্রুটি: " + err.message);
         } finally {
-          directGithubPushBtn.disabled = false;
-          directGithubPushBtn.textContent = "সরাসরি GitHub-এ পাবলিশ করুন";
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="cloud-upload" class="w-4 h-4"></i><span>সরাসরি GitHub-এ পাবলিশ করুন</span>`;
+          lucide.createIcons();
         }
       });
+
+      // ================= 7. SETTINGS & SECURITY =================
+      document.getElementById("settings-pass-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const curPass = document.getElementById("settings-cur-pass").value;
+        const newPass = document.getElementById("settings-new-pass").value;
+        const confPass = document.getElementById("settings-confirm-pass").value;
+
+        const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
+        if (curPass !== storedPass) {
+          alert("বর্তমান পাসওয়ার্ড সঠিক নয়!");
+          return;
+        }
+        if (newPass.length < 4) {
+          alert("নতুন পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে!");
+          return;
+        }
+        if (newPass !== confPass) {
+          alert("নতুন পাসওয়ার্ড দুটি মিলছে না!");
+          return;
+        }
+
+        localStorage.setItem("admin_password", newPass);
+        document.getElementById("settings-pass-form").reset();
+        showAdminToast("পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!");
+      });
+
+      // Reset Defaults
+      document.getElementById("reset-defaults-btn").addEventListener("click", () => {
+        if (confirm("সতর্কতা: আপনার সমস্ত কাস্টম ডেটা মুছে গিয়ে প্রাথমিক ১০টি পোস্টে ফিরে যাবে। আপনি কি নিশ্চিত?")) {
+          localStorage.removeItem("medhakosh_custom_posts");
+          activeBlogs = [...BLOG_DATA];
+          saveActiveBlogs();
+          showAdminToast("সিস্টেম প্রাথমিক অবস্থায় রিস্টোর করা হয়েছে।");
+          switchView("overview");
+        }
+      });
+
+      // Theme logic
+      function initTheme() {
+        const isDark = localStorage.getItem("theme") === "dark" || 
+          (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        
+        if (isDark) {
+          document.documentElement.classList.add("dark");
+          adminThemeIcon.setAttribute("data-lucide", "sun");
+        } else {
+          document.documentElement.classList.remove("dark");
+          adminThemeIcon.setAttribute("data-lucide", "moon");
+        }
+      }
+
+      adminThemeToggle.addEventListener("click", () => {
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        adminThemeIcon.setAttribute("data-lucide", isDark ? "sun" : "moon");
+        lucide.createIcons();
+      });
+
     });
   </script>
 </body>

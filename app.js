@@ -753,9 +753,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fileRequestForm.addEventListener("submit", (e) => {
     e.preventDefault();
+    const userInput = document.getElementById("request-user");
+    const topicInput = document.getElementById("request-topic");
+    const notesInput = document.getElementById("request-notes");
+
+    const newRequest = {
+      id: Date.now(),
+      user: userInput ? userInput.value.trim() : "Anonymous",
+      topic: topicInput ? topicInput.value.trim() : "নতুন ফাইল",
+      notes: notesInput ? notesInput.value.trim() : "",
+      date: new Date().toLocaleDateString('bn-BD'),
+      status: "pending"
+    };
+
+    try {
+      const requests = JSON.parse(localStorage.getItem("medhakosh_file_requests") || "[]");
+      requests.unshift(newRequest);
+      localStorage.setItem("medhakosh_file_requests", JSON.stringify(requests));
+    } catch(err) {
+      console.error(err);
+    }
+
     requestModal.classList.add("hidden");
     fileRequestForm.reset();
-    showToast("ধন্যবাদ! আপনার অনুরোধটি গৃহীত হয়েছে। আমরা শীঘ্রই ফাইলটি যুক্ত করব।");
+    showToast("ধন্যবাদ! আপনার অনুরোধটি গৃহীত হয়েছে। অ্যাডমিন টিম শীঘ্রই এটি পর্যালোচনা করবে।");
   });
 
   // Trigger Download helper
