@@ -812,7 +812,8 @@ document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
 
     setTimeout(() => {
-      if (toast.parentElement) toast.parentElement.removeChild(toast);
+      if (toast && typeof toast.remove === 'function') toast.remove();
+      else if (toast && toast.parentElement) toast.parentElement.removeChild(toast);
     }, 3000);
   };
 
