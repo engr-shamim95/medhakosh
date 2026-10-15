@@ -49,14 +49,17 @@
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">মেধাকোষ ওয়েবসাইট নিয়ন্ত্রণ করার জন্য পাসওয়ার্ড দিন</p>
 
       <form id="login-form" class="mt-6 space-y-4">
-        <div>
+        <div class="relative flex items-center">
           <input 
             type="password" 
             id="admin-password-input" 
             placeholder="আপনার গোপন পাসওয়ার্ড দিন" 
             required 
-            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            class="w-full pl-4 pr-11 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
+          <button type="button" onclick="togglePasswordVisibility('admin-password-input', this)" class="absolute right-3.5 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none" title="পাসওয়ার্ড দেখুন/লুকান">
+            <i data-lucide="eye" class="w-5 h-5"></i>
+          </button>
         </div>
         <button 
           type="submit" 
@@ -361,15 +364,30 @@
       <form id="change-pass-form" class="space-y-3.5">
         <div>
           <label class="block text-xs font-semibold mb-1">বর্তমান পাসওয়ার্ড *</label>
-          <input type="password" id="current-pass-input" required placeholder="বর্তমান পাসওয়ার্ড লিখুন" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <div class="relative flex items-center">
+            <input type="password" id="current-pass-input" required placeholder="বর্তমান পাসওয়ার্ড লিখুন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <button type="button" onclick="togglePasswordVisibility('current-pass-input', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none" title="পাসওয়ার্ড দেখুন/লুকান">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
         </div>
         <div>
           <label class="block text-xs font-semibold mb-1">নতুন পাসওয়ার্ড *</label>
-          <input type="password" id="new-pass-input" required placeholder="নতুন গোপন পাসওয়ার্ড দিন" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <div class="relative flex items-center">
+            <input type="password" id="new-pass-input" required placeholder="নতুন গোপন পাসওয়ার্ড দিন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <button type="button" onclick="togglePasswordVisibility('new-pass-input', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none" title="পাসওয়ার্ড দেখুন/লুকান">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
         </div>
         <div>
           <label class="block text-xs font-semibold mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
-          <input type="password" id="confirm-pass-input" required placeholder="আবার নতুন পাসওয়ার্ড দিন" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <div class="relative flex items-center">
+            <input type="password" id="confirm-pass-input" required placeholder="আবার নতুন পাসওয়ার্ড দিন" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <button type="button" onclick="togglePasswordVisibility('confirm-pass-input', this)" class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none" title="পাসওয়ার্ড দেখুন/লুকান">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
         </div>
         <button type="submit" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md">
           পাসওয়ার্ড সংরক্ষণ করুন
@@ -428,6 +446,18 @@
       const downloadDatajsBtn = document.getElementById("download-datajs-btn");
       const ghTokenInput = document.getElementById("gh-token-input");
       const directGithubPushBtn = document.getElementById("direct-github-push-btn");
+
+      // Toggle Password Visibility (Eye Icon)
+      window.togglePasswordVisibility = function(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPass = input.type === "password";
+        input.type = isPass ? "text" : "password";
+        const isLarge = inputId === "admin-password-input";
+        const iconSize = isLarge ? "w-5 h-5" : "w-4 h-4";
+        btn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" class="${iconSize}"></i>`;
+        if (window.lucide) lucide.createIcons();
+      };
 
       // Password Change Global Functions & Handlers
       window.openPasswordModal = function() {
