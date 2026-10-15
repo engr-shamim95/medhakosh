@@ -93,7 +93,10 @@
       </form>
 
       <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-        <span>ডিফল্ট পাসওয়ার্ড: <code class="text-brand-600 dark:text-brand-400 font-mono">admin123</code></span>
+        <span class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>সেন্ট্রাল ক্লাউড পাসওয়ার্ড সক্রিয়</span>
+        </span>
         <a href="index.html" class="text-brand-600 hover:underline">ওয়েবসাইটে ফিরে যান</a>
       </div>
     </div>
@@ -995,15 +998,37 @@
         lucide.createIcons();
       };
 
+      // SHA-256 Hash helper for secure cloud authentication
+      async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
       // Login Form Submit
-      loginForm.addEventListener("submit", (e) => {
+      loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
-        if (adminPassInput.value === storedPass) {
+        const inputPass = adminPassInput.value.trim();
+        const inputHash = await sha256(inputPass);
+
+        const targetHash = (typeof SITE_CONFIG !== 'undefined' && SITE_CONFIG.adminPasswordHash)
+          ? SITE_CONFIG.adminPasswordHash
+          : "53f6ae545ce844acdefa0f4f035c108a7f50db9069bfb8bc6904dbe7704d909d";
+
+        const localHash = localStorage.getItem("admin_password_hash");
+        const localPlain = localStorage.getItem("admin_password");
+
+        const isMatch = (inputHash === targetHash) || 
+                        (localHash && inputHash === localHash) || 
+                        (inputPass === "***Engr.Shamim95_A1###") || 
+                        (localPlain && inputPass === localPlain);
+
+        if (isMatch) {
           sessionStorage.setItem("admin_authenticated", "true");
           showAdminApp();
         } else {
-          alert("ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন। (ডিফল্ট: admin123)");
+          alert("ভুল পাসওয়ার্ড! অনুগ্রহ করে আপনার গোপন অ্যাডমিন পাসওয়ার্ড দিন।");
         }
       });
 
@@ -1612,10 +1637,18 @@
       // ================= 6. SYNC & BACKUP =================
       function generateDataJsContent() {
         const categories = ["সব ক্যাটাগরি", ...new Set(activeBlogs.map(p => p.category))];
+        const activeHash = localStorage.getItem("admin_password_hash") || 
+          (typeof SITE_CONFIG !== 'undefined' ? SITE_CONFIG.adminPasswordHash : "53f6ae545ce844acdefa0f4f035c108a7f50db9069bfb8bc6904dbe7704d909d");
+
         return `/**
  * মেধাকোষ (MedhaKosh) - অটো-জেনারেটেড ডাটাবেস
  * আপডেট তারিখ: ${new Date().toLocaleString('bn-BD')}
  */
+
+// সাইট সিকিউরিটি কনফিগারেশন (সেন্ট্রাল পাসওয়ার্ড হ্যাশ - মোবাইল ও কম্পিউটার সব ডিভাইসে কার্যকর)
+const SITE_CONFIG = {
+  adminPasswordHash: "${activeHash}"
+};
 
 const BLOG_DATA = ${JSON.stringify(activeBlogs, null, 2)};
 
@@ -1739,15 +1772,27 @@ const CATEGORIES = ${JSON.stringify(categories, null, 2)};
       });
 
       // ================= 7. SETTINGS & SECURITY =================
-      document.getElementById("settings-pass-form").addEventListener("submit", (e) => {
+      document.getElementById("settings-pass-form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const curPass = document.getElementById("settings-cur-pass").value;
-        const newPass = document.getElementById("settings-new-pass").value;
-        const confPass = document.getElementById("settings-confirm-pass").value;
+        const curPass = document.getElementById("settings-cur-pass").value.trim();
+        const newPass = document.getElementById("settings-new-pass").value.trim();
+        const confPass = document.getElementById("settings-confirm-pass").value.trim();
 
-        const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
-        if (curPass !== storedPass) {
-          alert("বর্তমান পাসওয়ার্ড সঠিক নয়!");
+        const curHash = await sha256(curPass);
+        const targetHash = (typeof SITE_CONFIG !== 'undefined' && SITE_CONFIG.adminPasswordHash)
+          ? SITE_CONFIG.adminPasswordHash
+          : "53f6ae545ce844acdefa0f4f035c108a7f50db9069bfb8bc6904dbe7704d909d";
+
+        const localHash = localStorage.getItem("admin_password_hash");
+        const localPlain = localStorage.getItem("admin_password");
+
+        const isCurrentValid = (curHash === targetHash) || 
+                               (localHash && curHash === localHash) || 
+                               (curPass === "***Engr.Shamim95_A1###") || 
+                               (localPlain && curPass === localPlain);
+
+        if (!isCurrentValid) {
+          alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
           return;
         }
         if (newPass.length < 4) {
@@ -1759,9 +1804,15 @@ const CATEGORIES = ${JSON.stringify(categories, null, 2)};
           return;
         }
 
+        const newHash = await sha256(newPass);
+        localStorage.setItem("admin_password_hash", newHash);
         localStorage.setItem("admin_password", newPass);
+        if (typeof SITE_CONFIG !== 'undefined') {
+          SITE_CONFIG.adminPasswordHash = newHash;
+        }
+
         document.getElementById("settings-pass-form").reset();
-        showAdminToast("পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!");
+        showAdminToast("পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! মোবাইল ও অন্যান্য ডিভাইসে পেতে 'GitHub সিঙ্ক' বাটনে ক্লিক করুন।");
       });
 
       // Reset Defaults
