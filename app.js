@@ -50,10 +50,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("theme-toggle");
   const themeIcon = document.getElementById("theme-icon");
 
+  // Load data (preferring custom posts saved via Admin Dashboard if available)
+  let currentBlogData = [...BLOG_DATA];
+  let currentCategories = [...CATEGORIES];
+  const savedAdminData = localStorage.getItem("medhakosh_custom_posts");
+  if (savedAdminData) {
+    try {
+      currentBlogData = JSON.parse(savedAdminData);
+      const uniqueCats = new Set(["সব ক্যাটাগরি", ...currentBlogData.map(p => p.category)]);
+      currentCategories = Array.from(uniqueCats);
+    } catch(e) {
+      currentBlogData = [...BLOG_DATA];
+      currentCategories = [...CATEGORIES];
+    }
+  }
+
   // Initialize Stats
   function updateStats() {
-    if (totalArticlesStat) totalArticlesStat.textContent = BLOG_DATA.length;
-    const totalFiles = BLOG_DATA.filter(post => post.downloadFile).length;
+    if (totalArticlesStat) totalArticlesStat.textContent = currentBlogData.length;
+    const totalFiles = currentBlogData.filter(post => post.downloadFile).length;
     if (totalFilesStat) totalFilesStat.textContent = totalFiles;
   }
 
@@ -107,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Render Categories
   function renderCategories() {
     categoryPillsContainer.innerHTML = "";
-    CATEGORIES.forEach(cat => {
+    currentCategories.forEach(cat => {
       const btn = document.createElement("button");
       btn.className = `category-pill px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-brand-500 ${
         currentCategory === cat ? "active" : ""
@@ -124,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Filter Data
   function getFilteredData() {
-    return BLOG_DATA.filter(item => {
+    return currentBlogData.filter(item => {
       const matchesCategory = currentCategory === "সব ক্যাটাগরি" || item.category === currentCategory;
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch = !q || 
@@ -380,7 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Global functions attached to window for HTML onclick handlers
   window.openArticleModal = function(id) {
-    const post = BLOG_DATA.find(p => p.id === id);
+    const post = currentBlogData.find(p => p.id === id);
     if (!post) return;
 
     const file = post.downloadFile;
