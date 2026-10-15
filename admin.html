@@ -88,7 +88,7 @@
           <i data-lucide="external-link" class="w-4 h-4"></i>
           <span>মূল ওয়েবসাইট দেখুন</span>
         </a>
-        <button id="open-change-pass-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:hover:bg-amber-900 transition-colors">
+        <button id="open-change-pass-btn" onclick="openPasswordModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:hover:bg-amber-900 transition-colors">
           <i data-lucide="key" class="w-4 h-4"></i>
           <span>পাসওয়ার্ড পরিবর্তন</span>
         </button>
@@ -147,10 +147,14 @@
 
       <!-- Action Buttons Bar -->
       <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-3">
           <button id="open-new-post-btn" class="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm shadow-brand-600/30">
             <i data-lucide="plus-circle" class="w-4 h-4"></i>
             <span>নতুন ব্লগ পোস্ট লিখুন</span>
+          </button>
+          <button onclick="openPasswordModal()" class="flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm">
+            <i data-lucide="key" class="w-4 h-4"></i>
+            <span>পাসওয়ার্ড পরিবর্তন করুন</span>
           </button>
           <button id="open-github-sync-btn" class="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl text-sm font-semibold transition-all">
             <i data-lucide="github" class="w-4 h-4"></i>
@@ -423,42 +427,56 @@
       const ghTokenInput = document.getElementById("gh-token-input");
       const directGithubPushBtn = document.getElementById("direct-github-push-btn");
 
-      // Password Change Elements & Handlers
+      // Password Change Global Functions & Handlers
+      window.openPasswordModal = function() {
+        const form = document.getElementById("change-pass-form");
+        if (form) form.reset();
+        const modal = document.getElementById("password-modal");
+        if (modal) modal.classList.remove("hidden");
+        if (window.lucide) lucide.createIcons();
+      };
+
+      window.closePasswordModal = function() {
+        const modal = document.getElementById("password-modal");
+        if (modal) modal.classList.add("hidden");
+      };
+
       const passwordModal = document.getElementById("password-modal");
       const openChangePassBtn = document.getElementById("open-change-pass-btn");
-      const closePasswordModal = document.getElementById("close-password-modal");
+      const closePasswordModalBtn = document.getElementById("close-password-modal");
       const changePassForm = document.getElementById("change-pass-form");
       const currentPassInput = document.getElementById("current-pass-input");
       const newPassInput = document.getElementById("new-pass-input");
       const confirmPassInput = document.getElementById("confirm-pass-input");
 
-      openChangePassBtn.addEventListener("click", () => {
-        changePassForm.reset();
-        passwordModal.classList.remove("hidden");
-      });
-      closePasswordModal.addEventListener("click", () => {
-        passwordModal.classList.add("hidden");
-      });
+      if (openChangePassBtn) {
+        openChangePassBtn.addEventListener("click", window.openPasswordModal);
+      }
+      if (closePasswordModalBtn) {
+        closePasswordModalBtn.addEventListener("click", window.closePasswordModal);
+      }
 
-      changePassForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
-        if (currentPassInput.value !== storedPass) {
-          alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
-          return;
-        }
-        if (newPassInput.value.length < 4) {
-          alert("পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে!");
-          return;
-        }
-        if (newPassInput.value !== confirmPassInput.value) {
-          alert("নতুন পাসওয়ার্ড দুটি মিলছে না!");
-          return;
-        }
-        localStorage.setItem("admin_password", newPassInput.value);
-        passwordModal.classList.add("hidden");
-        alert("আপনার অ্যাডমিন পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! পরবর্তী লগইনে এই নতুন পাসওয়ার্ডটি ব্যবহার করুন।");
-      });
+      if (changePassForm) {
+        changePassForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
+          if (currentPassInput.value !== storedPass) {
+            alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
+            return;
+          }
+          if (newPassInput.value.length < 4) {
+            alert("পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে!");
+            return;
+          }
+          if (newPassInput.value !== confirmPassInput.value) {
+            alert("নতুন পাসওয়ার্ড দুটি মিলছে না!");
+            return;
+          }
+          localStorage.setItem("admin_password", newPassInput.value);
+          window.closePasswordModal();
+          alert("আপনার অ্যাডমিন পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! পরবর্তী লগইনে এই নতুন পাসওয়ার্ডটি ব্যবহার করুন।");
+        });
+      }
 
       // Working Blog List (from LocalStorage or data.js)
       let activeBlogs = [];
