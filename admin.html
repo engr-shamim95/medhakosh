@@ -53,7 +53,7 @@
           <input 
             type="password" 
             id="admin-password-input" 
-            placeholder="পাসওয়ার্ড লিখুন (ডিফল্ট: admin123)" 
+            placeholder="আপনার গোপন পাসওয়ার্ড দিন" 
             required 
             class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
@@ -65,7 +65,6 @@
           লগইন করুন
         </button>
       </form>
-      <p class="text-xs text-slate-400 mt-4">ডিফল্ট পাসওয়ার্ড: <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-brand-600 font-mono">admin123</code> (ভেতরে গিয়ে পরিবর্তন করা যাবে)</p>
     </div>
   </div>
 
@@ -89,6 +88,10 @@
           <i data-lucide="external-link" class="w-4 h-4"></i>
           <span>মূল ওয়েবসাইট দেখুন</span>
         </a>
+        <button id="open-change-pass-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:hover:bg-amber-900 transition-colors">
+          <i data-lucide="key" class="w-4 h-4"></i>
+          <span>পাসওয়ার্ড পরিবর্তন</span>
+        </button>
         <button id="logout-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors">
           <i data-lucide="log-out" class="w-4 h-4"></i>
           <span>লগআউট</span>
@@ -334,6 +337,39 @@
         </div>
       </div>
     </div>
+  <!-- ================= MODAL: CHANGE PASSWORD ================= -->
+  <div id="password-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex items-center justify-center">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 p-6 relative">
+      <button id="close-password-modal" class="absolute top-4 right-4 p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-950/60 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-2">
+          <i data-lucide="key-round" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold">অ্যাডমিন পাসওয়ার্ড পরিবর্তন</h3>
+        <p class="text-xs text-slate-500">আপনার নতুন গোপন পাসওয়ার্ড সেট করুন</p>
+      </div>
+
+      <form id="change-pass-form" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold mb-1">বর্তমান পাসওয়ার্ড *</label>
+          <input type="password" id="current-pass-input" required placeholder="বর্তমান পাসওয়ার্ড লিখুন" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">নতুন পাসওয়ার্ড *</label>
+          <input type="password" id="new-pass-input" required placeholder="নতুন গোপন পাসওয়ার্ড দিন" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
+          <input type="password" id="confirm-pass-input" required placeholder="আবার নতুন পাসওয়ার্ড দিন" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md">
+          পাসওয়ার্ড সংরক্ষণ করুন
+        </button>
+      </form>
+    </div>
   </div>
 
   <!-- Scripts -->
@@ -386,6 +422,43 @@
       const downloadDatajsBtn = document.getElementById("download-datajs-btn");
       const ghTokenInput = document.getElementById("gh-token-input");
       const directGithubPushBtn = document.getElementById("direct-github-push-btn");
+
+      // Password Change Elements & Handlers
+      const passwordModal = document.getElementById("password-modal");
+      const openChangePassBtn = document.getElementById("open-change-pass-btn");
+      const closePasswordModal = document.getElementById("close-password-modal");
+      const changePassForm = document.getElementById("change-pass-form");
+      const currentPassInput = document.getElementById("current-pass-input");
+      const newPassInput = document.getElementById("new-pass-input");
+      const confirmPassInput = document.getElementById("confirm-pass-input");
+
+      openChangePassBtn.addEventListener("click", () => {
+        changePassForm.reset();
+        passwordModal.classList.remove("hidden");
+      });
+      closePasswordModal.addEventListener("click", () => {
+        passwordModal.classList.add("hidden");
+      });
+
+      changePassForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const storedPass = localStorage.getItem("admin_password") || DEFAULT_PASS;
+        if (currentPassInput.value !== storedPass) {
+          alert("বর্তমান পাসওয়ার্ডটি সঠিক নয়!");
+          return;
+        }
+        if (newPassInput.value.length < 4) {
+          alert("পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে!");
+          return;
+        }
+        if (newPassInput.value !== confirmPassInput.value) {
+          alert("নতুন পাসওয়ার্ড দুটি মিলছে না!");
+          return;
+        }
+        localStorage.setItem("admin_password", newPassInput.value);
+        passwordModal.classList.add("hidden");
+        alert("আপনার অ্যাডমিন পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! পরবর্তী লগইনে এই নতুন পাসওয়ার্ডটি ব্যবহার করুন।");
+      });
 
       // Working Blog List (from LocalStorage or data.js)
       let activeBlogs = [];
